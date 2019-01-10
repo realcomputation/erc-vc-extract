@@ -1,0 +1,57 @@
+(* 
+
+you can print semantic of ERC terms.
+@context (v : t) 
+	will add the variable of type t to the context.
+@semantic t
+	will print semantic of t if the term t is well--typed under the loaded context.
+	It prints two predicates.
+	The first one will be one messy and long predicate with many many quantifiers, 
+		which is the result of directly applying the translation function
+	The second one will be much shorter and in most case quantifier free predicate.
+		The program tries to eliminate all simple quantifiers such as
+		exists x, x = a /\ P =reduce=> P[x->a] etc.
+		After removing all the trivial quantifiers, the program tries to modify the 
+		predicate into prenex form (exists x, forall y, ... P where P is quantifier free)
+		then change P into DNF then tries to reduce clauses based one simple arithmetics such as
+		(x = y /\ x < y /\ P ...) \/ Q =reduce=> Q
+		If the tried DNF reduced form is longer than before, it rolls back.
+
+The below are a code printing semantics of terms used in Trisection program.
+
+*)
+
+@load f : R -> R 
+		when True with True
+@load g : R -> Z when True with True
+@context (a : Real, b : Real, p : Integer)
+
+@semantic 0.0
+@semantic 1.0
+@semantic test(b-a < iota(p)) 
+@semantic test(b-a > iota(p-1))
+@semantic select(test(b-a < iota(p)), test(b-a > iota(p-1)))
+@semantic test(f((a+2.0*b)/3.0) > 0.0)
+@semantic test(0.0 > f((2.0*a+b)/3.0))
+@semantic select(test(f((a+2.0*b)/3.0) > 0.0), test(0.0 > f((2.0*a+b)/3.0)))
+@semantic (2.0*a+b)/3.0
+@semantic (a+2.0*b)/3.0
+@semantic f(3.0)
+@semantic select(test(f(a)>b), test(f(b)>a))
+
+(******* Trisection 
+newvar a := 0.0;
+newvar b := 1.0;
+
+@invariant uniq(a, b)
+@variant b-a-iota(p)
+while select(test(b-a < iota(p)), test(b-a > iota(p-1)))
+do
+	if select(test(f((a+2.0*b)/3.0) > 0.0), test(0.0 > f((2.0*a+b)/3.0)))
+	then
+		a := (2.0*a+b)/3.0
+	else
+		b := (a+2.0*b)/3.0
+
+Return a
+*******************)

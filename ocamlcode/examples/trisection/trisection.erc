@@ -1,0 +1,52 @@
+(* load a single valued function to the language *)
+@load f : R -> R 
+	when True with f(0.0) < 0.0 < f(1.0)
+
+
+
+(* assume the loaded f is continuous *)
+@assume @Coq continuity f.
+(*
+@assume 
+	forall pt : R, 
+		(forall eps : R, (eps > 0.0 -> 
+				exists del : R, (del > 0.0 /\ forall pts : R, (-del < pt - pts < del -> -eps < f(pt) - f(pts) < eps))))
+*)
+
+(* defining a predicate to be used in assertions: uniq(a,b) means f has unique root in (a,b) with sign change *)
+@definition uniq : R * R -> Prop := 0.0< @1 <1.0 /\ 0.0 < @2 < 1.0 /\ @1 < @2 /\ f(@1) < 0.0 < f(@2) /\ exists! z : R, (@1 < z < @2 /\ f(z) = 0.0)
+
+(* assume the loaded f has unique root in (0,1) with sign change *)
+@assume uniq[0.0,1.0]
+
+(* precondition *)
+@precondition True
+
+(* 
+ * _ is a special symbol denoting return value
+ * the post condition says _ approx root by prec(p)
+*)
+@postcondition 0.0 < _ < 1.0 /\ exists root : R, (f(root) = 0.0 /\ - prec(p) < root - _ <  prec(p))
+
+(* input of the ERC program *)
+Input (p : Integer)
+
+(* Statement of the program *)
+newvar a := 0.0;
+newvar b := 1.0;
+
+(* loop in/variant comes here *)
+@invariant uniq[a, b]
+@variant b - a - prec(p-1)
+
+(* while loop with branching in its body *)
+while select(test(b-a < iota(p)), test(b-a > iota(p-1)))
+do
+	if select(test(f((a+2.0*b)/3.0) > 0.0), test(0.0 > f((2.0*a+b)/3.0)))
+	then
+		a := (2.0*a+b)/3.0
+	else
+		b := (a+2.0*b)/3.0
+
+(* Return term *)
+Return a

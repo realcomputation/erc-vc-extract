@@ -1,0 +1,18 @@
+(* precondition *)
+@precondition True
+(* postcondition*)
+@postcondition (_ = 1 -> x > y - prec (p)) /\ (_ = 0 -> y > x - prec (p))
+
+(* input of the ERC program *)
+Input (x : Real, y : Real, p : Integer)
+
+newvar k:=0;
+(* Statement of the program *)
+if select(test(x>y - iota(p)), test(y>x-iota(p)))
+then
+	k := 0
+else
+	k := 1
+
+(* Return term *)
+Return k

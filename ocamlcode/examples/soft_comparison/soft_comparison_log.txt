@@ -1,0 +1,109 @@
+
+================
+
+Semantic of 1 is 
+
+(@=1)
+
+is reduced to
+
+(@=1)
+================
+
+ application 
+
+(@=1)
+
+ is further reduced to 
+
+(_assign5=1)
+================
+
+Semantic of Choose(test(x>y + -iota(p)), test(y>x + -iota(p))) is 
+
+((((@=0) \land (\exists _v6 : \mathbb{Z}, ((_v6=1) \land (\exists _test21 : \mathbb{Z}, ((((_test21=1) \land (\exists _v22 : \mathbb{Z}, (\exists _v23 : \mathbb{Z}, ((_v22>_v23) \land ((_v22=x) \land (\exists _v30 : \mathbb{R}, (\exists _v31 : \mathbb{R}, ((_v23=(_v30 + _v31)) \land ((_v30=y) \land (\exists _v32 : \mathbb{R}, ((_v31=- _v32) \land (\exists _v33 : \mathbb{Z}, ((_v32=2^_v33) \land (_v33=p)))))))))))))) \lor ((_test21=0) \land (\exists _v24 : \mathbb{Z}, (\exists _v25 : \mathbb{Z}, ((_v25>_v24) \land ((_v24=x) \land (\exists _v26 : \mathbb{R}, (\exists _v27 : \mathbb{R}, ((_v25=(_v26 + _v27)) \land ((_v26=y) \land (\exists _v28 : \mathbb{R}, ((_v27=- _v28) \land (\exists _v29 : \mathbb{Z}, ((_v28=2^_v29) \land (_v29=p))))))))))))))) \land (!(_test21=0))))))) \lor (((@=1) \land (\exists _v7 : \mathbb{Z}, ((_v7=1) \land (\exists _test8 : \mathbb{Z}, ((((_test8=1) \land (\exists _v9 : \mathbb{Z}, (\exists _v10 : \mathbb{Z}, ((_v9>_v10) \land ((_v9=y) \land (\exists _v17 : \mathbb{R}, (\exists _v18 : \mathbb{R}, ((_v10=(_v17 + _v18)) \land ((_v17=x) \land (\exists _v19 : \mathbb{R}, ((_v18=- _v19) \land (\exists _v20 : \mathbb{Z}, ((_v19=2^_v20) \land (_v20=p)))))))))))))) \lor ((_test8=0) \land (\exists _v11 : \mathbb{Z}, (\exists _v12 : \mathbb{Z}, ((_v12>_v11) \land ((_v11=y) \land (\exists _v13 : \mathbb{R}, (\exists _v14 : \mathbb{R}, ((_v12=(_v13 + _v14)) \land ((_v13=x) \land (\exists _v15 : \mathbb{R}, ((_v14=- _v15) \land (\exists _v16 : \mathbb{Z}, ((_v15=2^_v16) \land (_v16=p))))))))))))))) \land (!(_test8=0))))))) \lor False)) \land (\exists _v34 : \mathbb{Z}, (((_v34=1) \land ((\exists _test73 : \mathbb{Z}, ((\forall _v93 : \mathbb{R}, (\forall _v94 : \mathbb{R}, (((_v93=x) \land (\exists _v107 : \mathbb{R}, (\exists _v108 : \mathbb{R}, ((_v94=(_v107 + _v108)) \land ((_v107=y) \land (\exists _v109 : \mathbb{R}, ((_v108=- _v109) \land (\exists _v110 : \mathbb{Z}, ((_v109=2^_v110) \land (_v110=p)))))))))) \to (!(_v93=_v94))))) \land (((_test73=1) \land (\exists _v95 : \mathbb{R}, (\exists _v96 : \mathbb{R}, ((_v95>_v96) \land ((_v95=x) \land (\exists _v103 : \mathbb{R}, (\exists _v104 : \mathbb{R}, ((_v96=(_v103 + _v104)) \land ((_v103=y) \land (\exists _v105 : \mathbb{R}, ((_v104=- _v105) \land (\exists _v106 : \mathbb{Z}, ((_v105=2^_v106) \land (_v106=p)))))))))))))) \lor ((_test73=0) \land (\exists _v97 : \mathbb{R}, (\exists _v98 : \mathbb{R}, ((_v98>_v97) \land ((_v97=x) \land (\exists _v99 : \mathbb{R}, (\exists _v100 : \mathbb{R}, ((_v98=(_v99 + _v100)) \land ((_v99=y) \land (\exists _v101 : \mathbb{R}, ((_v100=- _v101) \land (\exists _v102 : \mathbb{Z}, ((_v101=2^_v102) \land (_v102=p))))))))))))))))) \land (\forall _test74 : \mathbb{Z}, (((\forall _v75 : \mathbb{R}, (\forall _v76 : \mathbb{R}, (((_v75=x) \land (\exists _v89 : \mathbb{R}, (\exists _v90 : \mathbb{R}, ((_v76=(_v89 + _v90)) \land ((_v89=y) \land (\exists _v91 : \mathbb{R}, ((_v90=- _v91) \land (\exists _v92 : \mathbb{Z}, ((_v91=2^_v92) \land (_v92=p)))))))))) \to (!(_v75=_v76))))) \land (((_test74=1) \land (\exists _v77 : \mathbb{R}, (\exists _v78 : \mathbb{R}, ((_v77>_v78) \land ((_v77=x) \land (\exists _v85 : \mathbb{R}, (\exists _v86 : \mathbb{R}, ((_v78=(_v85 + _v86)) \land ((_v85=y) \land (\exists _v87 : \mathbb{R}, ((_v86=- _v87) \land (\exists _v88 : \mathbb{Z}, ((_v87=2^_v88) \land (_v88=p)))))))))))))) \lor ((_test74=0) \land (\exists _v79 : \mathbb{R}, (\exists _v80 : \mathbb{R}, ((_v80>_v79) \land ((_v79=x) \land (\exists _v81 : \mathbb{R}, (\exists _v82 : \mathbb{R}, ((_v80=(_v81 + _v82)) \land ((_v81=y) \land (\exists _v83 : \mathbb{R}, ((_v82=- _v83) \land (\exists _v84 : \mathbb{Z}, ((_v83=2^_v84) \land (_v84=p)))))))))))))))) \to (!(_test74=0)))))) \lor ((_v34=1) \land ((\exists _test35 : \mathbb{Z}, ((\forall _v55 : \mathbb{R}, (\forall _v56 : \mathbb{R}, (((_v55=y) \land (\exists _v69 : \mathbb{R}, (\exists _v70 : \mathbb{R}, ((_v56=(_v69 + _v70)) \land ((_v69=x) \land (\exists _v71 : \mathbb{R}, ((_v70=- _v71) \land (\exists _v72 : \mathbb{Z}, ((_v71=2^_v72) \land (_v72=p)))))))))) \to (!(_v55=_v56))))) \land (((_test35=1) \land (\exists _v57 : \mathbb{R}, (\exists _v58 : \mathbb{R}, ((_v57>_v58) \land ((_v57=y) \land (\exists _v65 : \mathbb{R}, (\exists _v66 : \mathbb{R}, ((_v58=(_v65 + _v66)) \land ((_v65=x) \land (\exists _v67 : \mathbb{R}, ((_v66=- _v67) \land (\exists _v68 : \mathbb{Z}, ((_v67=2^_v68) \land (_v68=p)))))))))))))) \lor ((_test35=0) \land (\exists _v59 : \mathbb{R}, (\exists _v60 : \mathbb{R}, ((_v60>_v59) \land ((_v59=y) \land (\exists _v61 : \mathbb{R}, (\exists _v62 : \mathbb{R}, ((_v60=(_v61 + _v62)) \land ((_v61=x) \land (\exists _v63 : \mathbb{R}, ((_v62=- _v63) \land (\exists _v64 : \mathbb{Z}, ((_v63=2^_v64) \land (_v64=p))))))))))))))))) \land (\forall _test36 : \mathbb{Z}, (((\forall _v37 : \mathbb{R}, (\forall _v38 : \mathbb{R}, (((_v37=y) \land (\exists _v51 : \mathbb{R}, (\exists _v52 : \mathbb{R}, ((_v38=(_v51 + _v52)) \land ((_v51=x) \land (\exists _v53 : \mathbb{R}, ((_v52=- _v53) \land (\exists _v54 : \mathbb{Z}, ((_v53=2^_v54) \land (_v54=p)))))))))) \to (!(_v37=_v38))))) \land (((_test36=1) \land (\exists _v39 : \mathbb{R}, (\exists _v40 : \mathbb{R}, ((_v39>_v40) \land ((_v39=y) \land (\exists _v47 : \mathbb{R}, (\exists _v48 : \mathbb{R}, ((_v40=(_v47 + _v48)) \land ((_v47=x) \land (\exists _v49 : \mathbb{R}, ((_v48=- _v49) \land (\exists _v50 : \mathbb{Z}, ((_v49=2^_v50) \land (_v50=p)))))))))))))) \lor ((_test36=0) \land (\exists _v41 : \mathbb{R}, (\exists _v42 : \mathbb{R}, ((_v42>_v41) \land ((_v41=y) \land (\exists _v43 : \mathbb{R}, (\exists _v44 : \mathbb{R}, ((_v42=(_v43 + _v44)) \land ((_v43=x) \land (\exists _v45 : \mathbb{R}, ((_v44=- _v45) \land (\exists _v46 : \mathbb{Z}, ((_v45=2^_v46) \land (_v46=p)))))))))))))))) \to (!(_test36=0)))))))))
+
+is reduced to
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+================
+
+ application 
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+
+ is further reduced to 
+
+(x>(y + - 2^p))
+================
+
+Semantic of 0 is 
+
+(@=0)
+
+is reduced to
+
+(@=0)
+================
+
+ application 
+
+(@=0)
+
+ is further reduced to 
+
+(_assign111=0)
+================
+
+Semantic of Choose(test(x>y + -iota(p)), test(y>x + -iota(p))) is 
+
+((((@=0) \land (\exists _v112 : \mathbb{Z}, ((_v112=1) \land (\exists _test127 : \mathbb{Z}, ((((_test127=1) \land (\exists _v128 : \mathbb{Z}, (\exists _v129 : \mathbb{Z}, ((_v128>_v129) \land ((_v128=x) \land (\exists _v136 : \mathbb{R}, (\exists _v137 : \mathbb{R}, ((_v129=(_v136 + _v137)) \land ((_v136=y) \land (\exists _v138 : \mathbb{R}, ((_v137=- _v138) \land (\exists _v139 : \mathbb{Z}, ((_v138=2^_v139) \land (_v139=p)))))))))))))) \lor ((_test127=0) \land (\exists _v130 : \mathbb{Z}, (\exists _v131 : \mathbb{Z}, ((_v131>_v130) \land ((_v130=x) \land (\exists _v132 : \mathbb{R}, (\exists _v133 : \mathbb{R}, ((_v131=(_v132 + _v133)) \land ((_v132=y) \land (\exists _v134 : \mathbb{R}, ((_v133=- _v134) \land (\exists _v135 : \mathbb{Z}, ((_v134=2^_v135) \land (_v135=p))))))))))))))) \land (!(_test127=0))))))) \lor (((@=1) \land (\exists _v113 : \mathbb{Z}, ((_v113=1) \land (\exists _test114 : \mathbb{Z}, ((((_test114=1) \land (\exists _v115 : \mathbb{Z}, (\exists _v116 : \mathbb{Z}, ((_v115>_v116) \land ((_v115=y) \land (\exists _v123 : \mathbb{R}, (\exists _v124 : \mathbb{R}, ((_v116=(_v123 + _v124)) \land ((_v123=x) \land (\exists _v125 : \mathbb{R}, ((_v124=- _v125) \land (\exists _v126 : \mathbb{Z}, ((_v125=2^_v126) \land (_v126=p)))))))))))))) \lor ((_test114=0) \land (\exists _v117 : \mathbb{Z}, (\exists _v118 : \mathbb{Z}, ((_v118>_v117) \land ((_v117=y) \land (\exists _v119 : \mathbb{R}, (\exists _v120 : \mathbb{R}, ((_v118=(_v119 + _v120)) \land ((_v119=x) \land (\exists _v121 : \mathbb{R}, ((_v120=- _v121) \land (\exists _v122 : \mathbb{Z}, ((_v121=2^_v122) \land (_v122=p))))))))))))))) \land (!(_test114=0))))))) \lor False)) \land (\exists _v140 : \mathbb{Z}, (((_v140=1) \land ((\exists _test179 : \mathbb{Z}, ((\forall _v199 : \mathbb{R}, (\forall _v200 : \mathbb{R}, (((_v199=x) \land (\exists _v213 : \mathbb{R}, (\exists _v214 : \mathbb{R}, ((_v200=(_v213 + _v214)) \land ((_v213=y) \land (\exists _v215 : \mathbb{R}, ((_v214=- _v215) \land (\exists _v216 : \mathbb{Z}, ((_v215=2^_v216) \land (_v216=p)))))))))) \to (!(_v199=_v200))))) \land (((_test179=1) \land (\exists _v201 : \mathbb{R}, (\exists _v202 : \mathbb{R}, ((_v201>_v202) \land ((_v201=x) \land (\exists _v209 : \mathbb{R}, (\exists _v210 : \mathbb{R}, ((_v202=(_v209 + _v210)) \land ((_v209=y) \land (\exists _v211 : \mathbb{R}, ((_v210=- _v211) \land (\exists _v212 : \mathbb{Z}, ((_v211=2^_v212) \land (_v212=p)))))))))))))) \lor ((_test179=0) \land (\exists _v203 : \mathbb{R}, (\exists _v204 : \mathbb{R}, ((_v204>_v203) \land ((_v203=x) \land (\exists _v205 : \mathbb{R}, (\exists _v206 : \mathbb{R}, ((_v204=(_v205 + _v206)) \land ((_v205=y) \land (\exists _v207 : \mathbb{R}, ((_v206=- _v207) \land (\exists _v208 : \mathbb{Z}, ((_v207=2^_v208) \land (_v208=p))))))))))))))))) \land (\forall _test180 : \mathbb{Z}, (((\forall _v181 : \mathbb{R}, (\forall _v182 : \mathbb{R}, (((_v181=x) \land (\exists _v195 : \mathbb{R}, (\exists _v196 : \mathbb{R}, ((_v182=(_v195 + _v196)) \land ((_v195=y) \land (\exists _v197 : \mathbb{R}, ((_v196=- _v197) \land (\exists _v198 : \mathbb{Z}, ((_v197=2^_v198) \land (_v198=p)))))))))) \to (!(_v181=_v182))))) \land (((_test180=1) \land (\exists _v183 : \mathbb{R}, (\exists _v184 : \mathbb{R}, ((_v183>_v184) \land ((_v183=x) \land (\exists _v191 : \mathbb{R}, (\exists _v192 : \mathbb{R}, ((_v184=(_v191 + _v192)) \land ((_v191=y) \land (\exists _v193 : \mathbb{R}, ((_v192=- _v193) \land (\exists _v194 : \mathbb{Z}, ((_v193=2^_v194) \land (_v194=p)))))))))))))) \lor ((_test180=0) \land (\exists _v185 : \mathbb{R}, (\exists _v186 : \mathbb{R}, ((_v186>_v185) \land ((_v185=x) \land (\exists _v187 : \mathbb{R}, (\exists _v188 : \mathbb{R}, ((_v186=(_v187 + _v188)) \land ((_v187=y) \land (\exists _v189 : \mathbb{R}, ((_v188=- _v189) \land (\exists _v190 : \mathbb{Z}, ((_v189=2^_v190) \land (_v190=p)))))))))))))))) \to (!(_test180=0)))))) \lor ((_v140=1) \land ((\exists _test141 : \mathbb{Z}, ((\forall _v161 : \mathbb{R}, (\forall _v162 : \mathbb{R}, (((_v161=y) \land (\exists _v175 : \mathbb{R}, (\exists _v176 : \mathbb{R}, ((_v162=(_v175 + _v176)) \land ((_v175=x) \land (\exists _v177 : \mathbb{R}, ((_v176=- _v177) \land (\exists _v178 : \mathbb{Z}, ((_v177=2^_v178) \land (_v178=p)))))))))) \to (!(_v161=_v162))))) \land (((_test141=1) \land (\exists _v163 : \mathbb{R}, (\exists _v164 : \mathbb{R}, ((_v163>_v164) \land ((_v163=y) \land (\exists _v171 : \mathbb{R}, (\exists _v172 : \mathbb{R}, ((_v164=(_v171 + _v172)) \land ((_v171=x) \land (\exists _v173 : \mathbb{R}, ((_v172=- _v173) \land (\exists _v174 : \mathbb{Z}, ((_v173=2^_v174) \land (_v174=p)))))))))))))) \lor ((_test141=0) \land (\exists _v165 : \mathbb{R}, (\exists _v166 : \mathbb{R}, ((_v166>_v165) \land ((_v165=y) \land (\exists _v167 : \mathbb{R}, (\exists _v168 : \mathbb{R}, ((_v166=(_v167 + _v168)) \land ((_v167=x) \land (\exists _v169 : \mathbb{R}, ((_v168=- _v169) \land (\exists _v170 : \mathbb{Z}, ((_v169=2^_v170) \land (_v170=p))))))))))))))))) \land (\forall _test142 : \mathbb{Z}, (((\forall _v143 : \mathbb{R}, (\forall _v144 : \mathbb{R}, (((_v143=y) \land (\exists _v157 : \mathbb{R}, (\exists _v158 : \mathbb{R}, ((_v144=(_v157 + _v158)) \land ((_v157=x) \land (\exists _v159 : \mathbb{R}, ((_v158=- _v159) \land (\exists _v160 : \mathbb{Z}, ((_v159=2^_v160) \land (_v160=p)))))))))) \to (!(_v143=_v144))))) \land (((_test142=1) \land (\exists _v145 : \mathbb{R}, (\exists _v146 : \mathbb{R}, ((_v145>_v146) \land ((_v145=y) \land (\exists _v153 : \mathbb{R}, (\exists _v154 : \mathbb{R}, ((_v146=(_v153 + _v154)) \land ((_v153=x) \land (\exists _v155 : \mathbb{R}, ((_v154=- _v155) \land (\exists _v156 : \mathbb{Z}, ((_v155=2^_v156) \land (_v156=p)))))))))))))) \lor ((_test142=0) \land (\exists _v147 : \mathbb{R}, (\exists _v148 : \mathbb{R}, ((_v148>_v147) \land ((_v147=y) \land (\exists _v149 : \mathbb{R}, (\exists _v150 : \mathbb{R}, ((_v148=(_v149 + _v150)) \land ((_v149=x) \land (\exists _v151 : \mathbb{R}, ((_v150=- _v151) \land (\exists _v152 : \mathbb{Z}, ((_v151=2^_v152) \land (_v152=p)))))))))))))))) \to (!(_test142=0)))))))))
+
+is reduced to
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+================
+
+ application 
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+
+ is further reduced to 
+
+(((_if4=0) \land (x>(y + - 2^p))) \lor ((_if4=1) \land (y>(x + - 2^p))))
+================
+
+Semantic of Choose(test(x>y + -iota(p)), test(y>x + -iota(p))) is 
+
+((((@=0) \land (\exists _v217 : \mathbb{Z}, ((_v217=1) \land (\exists _test232 : \mathbb{Z}, ((((_test232=1) \land (\exists _v233 : \mathbb{Z}, (\exists _v234 : \mathbb{Z}, ((_v233>_v234) \land ((_v233=x) \land (\exists _v241 : \mathbb{R}, (\exists _v242 : \mathbb{R}, ((_v234=(_v241 + _v242)) \land ((_v241=y) \land (\exists _v243 : \mathbb{R}, ((_v242=- _v243) \land (\exists _v244 : \mathbb{Z}, ((_v243=2^_v244) \land (_v244=p)))))))))))))) \lor ((_test232=0) \land (\exists _v235 : \mathbb{Z}, (\exists _v236 : \mathbb{Z}, ((_v236>_v235) \land ((_v235=x) \land (\exists _v237 : \mathbb{R}, (\exists _v238 : \mathbb{R}, ((_v236=(_v237 + _v238)) \land ((_v237=y) \land (\exists _v239 : \mathbb{R}, ((_v238=- _v239) \land (\exists _v240 : \mathbb{Z}, ((_v239=2^_v240) \land (_v240=p))))))))))))))) \land (!(_test232=0))))))) \lor (((@=1) \land (\exists _v218 : \mathbb{Z}, ((_v218=1) \land (\exists _test219 : \mathbb{Z}, ((((_test219=1) \land (\exists _v220 : \mathbb{Z}, (\exists _v221 : \mathbb{Z}, ((_v220>_v221) \land ((_v220=y) \land (\exists _v228 : \mathbb{R}, (\exists _v229 : \mathbb{R}, ((_v221=(_v228 + _v229)) \land ((_v228=x) \land (\exists _v230 : \mathbb{R}, ((_v229=- _v230) \land (\exists _v231 : \mathbb{Z}, ((_v230=2^_v231) \land (_v231=p)))))))))))))) \lor ((_test219=0) \land (\exists _v222 : \mathbb{Z}, (\exists _v223 : \mathbb{Z}, ((_v223>_v222) \land ((_v222=y) \land (\exists _v224 : \mathbb{R}, (\exists _v225 : \mathbb{R}, ((_v223=(_v224 + _v225)) \land ((_v224=x) \land (\exists _v226 : \mathbb{R}, ((_v225=- _v226) \land (\exists _v227 : \mathbb{Z}, ((_v226=2^_v227) \land (_v227=p))))))))))))))) \land (!(_test219=0))))))) \lor False)) \land (\exists _v245 : \mathbb{Z}, (((_v245=1) \land ((\exists _test284 : \mathbb{Z}, ((\forall _v304 : \mathbb{R}, (\forall _v305 : \mathbb{R}, (((_v304=x) \land (\exists _v318 : \mathbb{R}, (\exists _v319 : \mathbb{R}, ((_v305=(_v318 + _v319)) \land ((_v318=y) \land (\exists _v320 : \mathbb{R}, ((_v319=- _v320) \land (\exists _v321 : \mathbb{Z}, ((_v320=2^_v321) \land (_v321=p)))))))))) \to (!(_v304=_v305))))) \land (((_test284=1) \land (\exists _v306 : \mathbb{R}, (\exists _v307 : \mathbb{R}, ((_v306>_v307) \land ((_v306=x) \land (\exists _v314 : \mathbb{R}, (\exists _v315 : \mathbb{R}, ((_v307=(_v314 + _v315)) \land ((_v314=y) \land (\exists _v316 : \mathbb{R}, ((_v315=- _v316) \land (\exists _v317 : \mathbb{Z}, ((_v316=2^_v317) \land (_v317=p)))))))))))))) \lor ((_test284=0) \land (\exists _v308 : \mathbb{R}, (\exists _v309 : \mathbb{R}, ((_v309>_v308) \land ((_v308=x) \land (\exists _v310 : \mathbb{R}, (\exists _v311 : \mathbb{R}, ((_v309=(_v310 + _v311)) \land ((_v310=y) \land (\exists _v312 : \mathbb{R}, ((_v311=- _v312) \land (\exists _v313 : \mathbb{Z}, ((_v312=2^_v313) \land (_v313=p))))))))))))))))) \land (\forall _test285 : \mathbb{Z}, (((\forall _v286 : \mathbb{R}, (\forall _v287 : \mathbb{R}, (((_v286=x) \land (\exists _v300 : \mathbb{R}, (\exists _v301 : \mathbb{R}, ((_v287=(_v300 + _v301)) \land ((_v300=y) \land (\exists _v302 : \mathbb{R}, ((_v301=- _v302) \land (\exists _v303 : \mathbb{Z}, ((_v302=2^_v303) \land (_v303=p)))))))))) \to (!(_v286=_v287))))) \land (((_test285=1) \land (\exists _v288 : \mathbb{R}, (\exists _v289 : \mathbb{R}, ((_v288>_v289) \land ((_v288=x) \land (\exists _v296 : \mathbb{R}, (\exists _v297 : \mathbb{R}, ((_v289=(_v296 + _v297)) \land ((_v296=y) \land (\exists _v298 : \mathbb{R}, ((_v297=- _v298) \land (\exists _v299 : \mathbb{Z}, ((_v298=2^_v299) \land (_v299=p)))))))))))))) \lor ((_test285=0) \land (\exists _v290 : \mathbb{R}, (\exists _v291 : \mathbb{R}, ((_v291>_v290) \land ((_v290=x) \land (\exists _v292 : \mathbb{R}, (\exists _v293 : \mathbb{R}, ((_v291=(_v292 + _v293)) \land ((_v292=y) \land (\exists _v294 : \mathbb{R}, ((_v293=- _v294) \land (\exists _v295 : \mathbb{Z}, ((_v294=2^_v295) \land (_v295=p)))))))))))))))) \to (!(_test285=0)))))) \lor ((_v245=1) \land ((\exists _test246 : \mathbb{Z}, ((\forall _v266 : \mathbb{R}, (\forall _v267 : \mathbb{R}, (((_v266=y) \land (\exists _v280 : \mathbb{R}, (\exists _v281 : \mathbb{R}, ((_v267=(_v280 + _v281)) \land ((_v280=x) \land (\exists _v282 : \mathbb{R}, ((_v281=- _v282) \land (\exists _v283 : \mathbb{Z}, ((_v282=2^_v283) \land (_v283=p)))))))))) \to (!(_v266=_v267))))) \land (((_test246=1) \land (\exists _v268 : \mathbb{R}, (\exists _v269 : \mathbb{R}, ((_v268>_v269) \land ((_v268=y) \land (\exists _v276 : \mathbb{R}, (\exists _v277 : \mathbb{R}, ((_v269=(_v276 + _v277)) \land ((_v276=x) \land (\exists _v278 : \mathbb{R}, ((_v277=- _v278) \land (\exists _v279 : \mathbb{Z}, ((_v278=2^_v279) \land (_v279=p)))))))))))))) \lor ((_test246=0) \land (\exists _v270 : \mathbb{R}, (\exists _v271 : \mathbb{R}, ((_v271>_v270) \land ((_v270=y) \land (\exists _v272 : \mathbb{R}, (\exists _v273 : \mathbb{R}, ((_v271=(_v272 + _v273)) \land ((_v272=x) \land (\exists _v274 : \mathbb{R}, ((_v273=- _v274) \land (\exists _v275 : \mathbb{Z}, ((_v274=2^_v275) \land (_v275=p))))))))))))))))) \land (\forall _test247 : \mathbb{Z}, (((\forall _v248 : \mathbb{R}, (\forall _v249 : \mathbb{R}, (((_v248=y) \land (\exists _v262 : \mathbb{R}, (\exists _v263 : \mathbb{R}, ((_v249=(_v262 + _v263)) \land ((_v262=x) \land (\exists _v264 : \mathbb{R}, ((_v263=- _v264) \land (\exists _v265 : \mathbb{Z}, ((_v264=2^_v265) \land (_v265=p)))))))))) \to (!(_v248=_v249))))) \land (((_test247=1) \land (\exists _v250 : \mathbb{R}, (\exists _v251 : \mathbb{R}, ((_v250>_v251) \land ((_v250=y) \land (\exists _v258 : \mathbb{R}, (\exists _v259 : \mathbb{R}, ((_v251=(_v258 + _v259)) \land ((_v258=x) \land (\exists _v260 : \mathbb{R}, ((_v259=- _v260) \land (\exists _v261 : \mathbb{Z}, ((_v260=2^_v261) \land (_v261=p)))))))))))))) \lor ((_test247=0) \land (\exists _v252 : \mathbb{R}, (\exists _v253 : \mathbb{R}, ((_v253>_v252) \land ((_v252=y) \land (\exists _v254 : \mathbb{R}, (\exists _v255 : \mathbb{R}, ((_v253=(_v254 + _v255)) \land ((_v254=x) \land (\exists _v256 : \mathbb{R}, ((_v255=- _v256) \land (\exists _v257 : \mathbb{Z}, ((_v256=2^_v257) \land (_v257=p)))))))))))))))) \to (!(_test247=0)))))))))
+
+is reduced to
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+================
+
+ application 
+
+(((@=0) \land (x>(y + - 2^p))) \lor ((@=1) \land (y>(x + - 2^p))))
+
+ is further reduced to 
+
+(((_if3=0) \land (x>(y + - 2^p))) \lor ((_if3=1) \land (y>(x + - 2^p))))
+================
+
+Semantic of 0 is 
+
+(@=0)
+
+is reduced to
+
+(@=0)
+================
+
+ application 
+
+(@=0)
+
+ is further reduced to 
+
+(_new322=0)

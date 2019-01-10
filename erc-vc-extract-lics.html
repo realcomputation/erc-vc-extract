@@ -1,0 +1,165 @@
+<html>
+<head>
+<title>
+Verification Condition Extractor for ERC Programs</title>
+</head>
+<body>
+
+
+<h1 id="ercprogramverification">Verification Condition Extractor for ERC Programs </h1>
+
+<p><strong>erc-vc-extract</strong> is an <em><a href="https://ocaml.org">OCaml</a></em> program which extracts verification condition of an annotated <strong>ERC</strong> program written by <em>Sewon Park @ KAIST.</em></p>
+
+<ul>
+<li><a href="https://lics.siglog.org/lics19/">LICS2019</a> submission version of <strong>erc-vc-extract</strong> can be downloaded <a href="erc-vc-extract.zip"> here </a>.</li>
+
+<li>Under development versions of <strong>erc-vc-extract</strong> can be accessed at its git <a href="https://github.com/realcomputation/erc-vc-extract">repository</a>.</li>
+</ul>
+
+<p><em>OCaml</em> is required to compile <strong>erc-vc-extract</strong>. You can build using <strong><em>make</em></strong> command.</p>
+
+<pre><code class="terminal language-terminal">./erc-vc-extract program.erc
+</code></pre>
+
+<p>on an annotated (pre/postcondition and loop in/variant) program, generates the three files:</p>
+
+<ol>
+<li><em>program_prec.v</em> <em>Coq</em> file contains definition and some facts about <em>prec</em> function used in <em>program.v</em>. The <em>prec</em> function is the precision embedding: $z \mapsto 2^z$. </li>
+
+<li><em>protrm_log.txt</em> is a text file states how the trivial quantifiers were reduced during translating set—valued semantic in <strong>ERC</strong> into a predicate in our assertion language, first order logic of the two—sorted structure.</li>
+
+<li><em>program.v</em> is a <em>Coq</em> file containing the extracted verification conditions which are required to be proved in order to verify the <strong>ERC</strong> program. The <em>Coq</em> file uses <em>program</em>prec.v_ file; hence the file should be compiled first: <code>coqc program_prec.v</code></li>
+</ol>
+
+<p><code>examples/trisection/</code> in the downloaded files contains <em>trisection.erc</em> which is the annotated <strong>ERC</strong> program for Trisection algorithm. The three files generated from <strong>erc-vc-extract</strong> (<em>trisection.v</em> , <em>trisection_prec.v</em>, <em>trisection_log.txt</em> ) can be found in the directory. <em>trisection_poved.v</em> is a <em>Coq</em> file where the theorems in <em>trisection.v</em> are proved.</p>
+
+<ol>
+<li><em><a href="trisection.erc">trisection.erc</a></em> : annotated erc program for Trisection algorithm</li>
+
+<li><em><a href="trisection_prec.v">trisection_prec.v</a></em> : <em>Coq</em> file defining the precision embedding</li>
+
+<li><em><a href="trisection.v">trisection.v</a></em> : <em>Coq</em> file generated from <strong>erc-vc-extract</strong></li>
+
+<li><em><a href="trisection_proved.v">trisection_proved.v</a></em> : <em>Coq</em> file with the statements in <em>trisection.v</em> proved.</li>
+</ol>
+
+<h2 id="actualsyntaxofannotatedercprogram">Actual Syntax of Annotated ERC Program</h2>
+
+<p><em><a href="ERClang.pdf">ERClang.pdf</a></em> in the downloaded files (repository) contains formal definition of syntax / semantics / verification rules of <strong>ERC</strong> program which the implementatio of <strong>erc-vc-extract</strong> is based on. However, the actual syntax of <strong>ERC</strong> described there and that are actually recognized by <strong>erc-vc-extract</strong> are slightly different.</p>
+
+<h3 id="syntaxofannotatedercprogram">Syntax of Annotated ERC Program</h3>
+
+<h4 id="syntaxofassertionlanguage">syntax of assertion language</h4>
+
+<ul>
+<li><em>ltype</em> := R <strong>|</strong> Z</li>
+
+<li><em>type</em> := <em>ltype</em> <strong>|</strong> R(<em>nat</em>) <strong>|</strong> Z(<em>nat</em>)</li>
+
+<li><em>lterm</em> := <em>string</em>  <strong>|</strong>  <em>int</em>  <strong>|</strong>  <em>int</em>.0  <strong>|</strong>  prec(<em>lterm</em>)  <strong>|</strong>  <em>lterm</em> + <em>lterm</em>  <strong>|</strong>  <em>lterm</em> * <em>lterm</em>  <strong>|</strong>  <em>lterm</em> - <em>lterm</em>  <strong>|</strong>  <em>lterm</em> / <em>lterm</em>  <strong>|</strong>  - <em>lterm</em>  <strong>|</strong>  / <em>lterm</em>  <strong>|</strong>  <em>string</em>(<em>lterm</em>, ..., <em>lterm</em>)  <strong>|</strong>  proj(<em>lterm, lterm</em>)  <strong>|</strong>  sub(<em>lterm, lterm, lterm</em>)  <strong>|</strong>  ( <em>lterm</em> )</li>
+
+<li><em>fol</em> := True  <strong>|</strong>  False  <strong>|</strong>  <em>lterm</em> = <em>lterm</em>  <strong>|</strong>  <em>lterm</em> > <em>lterm</em>  <strong>|</strong>  ~ <em>fol</em>  <strong>|</strong>  <em>fol</em> -> <em>fol</em> <strong>|</strong>  <em>fol</em> /\ <em>fol</em>  <strong>|</strong>  <em>fol</em> \/ <em>fol</em>  <strong>|</strong>  forall <em>string</em> : <em>ltype</em>, <em>fol</em>  <strong>|</strong>  exists <em>string</em> : <em>ltype</em>, <em>fol</em>  <strong>|</strong>  <em>string</em>[<em>lterm</em>, ..., <em>lterm]</em>  <strong>|</strong>  <em>string</em>[<em>lterm</em>, ..., <em>lterm</em>]</li>
+</ul>
+
+<h4 id="syntaxofannotatedstatements">syntax of annotated statements</h4>
+
+<ul>
+<li><em>btype</em> := Real  <strong>|</strong>  Integer</li>
+
+<li><em>dtype</em> := <em>btype</em>  <strong>|</strong>  Real(<em>nat</em>)  <strong>|</strong>  Integer(<em>nat</em>)</li>
+
+<li><em>term</em> := <em>string</em>  <strong>|</strong>  <em>int</em>  <strong>|</strong>  <em>int</em>.0  <strong>|</strong>  <em>term</em> + <em>term</em>  <strong>|</strong>  <em>term</em> - <em>term</em>  <strong>|</strong>  - <em>term</em>  <strong>|</strong>  <em>term</em> * <em>term</em>  <strong>|</strong>  <em>term</em> / <em>term</em>  <strong>|</strong>  / <em>term</em>  <strong>|</strong>  <em>term</em> = <em>term</em>  <strong>|</strong>  <em>term</em> >
+<em>term</em>  <strong>|</strong>  <em>term</em> &lt; <em>term</em>  <strong>|</strong>  ! <em>term</em>  <strong>|</strong>  <em>term</em> &amp;&amp; <em>term</em>  <strong>|</strong>  <em>term</em>  ||  <em>term</em>  <strong>|</strong>  select(<em>term</em>, <em>term</em>)  <strong>|</strong>  iota(<em>term</em>)  <strong>|</strong>  max(<em>term</em>, <em>term</em>)  <strong>|</strong>  pif(<em>term</em>, <em>term</em>, <em>term</em>)  <strong>|</strong>  string(<em>term</em>)  <strong>|</strong>  test(<em>term</em>)  <strong>|</strong>  (<em>term</em>)  </li>
+
+<li><em>statement</em> := skip  <strong>|</strong>  newvar <em>string</em> := <em>term</em>  <strong>|</strong>  <em>string</em> := <em>term</em>  <strong>|</strong>  <em>string</em>[<em>term</em>] := <em>term</em>  <strong>|</strong>  if <em>term</em> then <em>statement</em> else <em>statement</em>. <strong>|</strong> @invariant <em>fol</em> @variant <em>lterm</em> while <em>term</em> do <em>statement</em>. <strong>|</strong>  <em>statement</em>; <em>statement</em>  <strong>|</strong>  { <em>statement</em> }</li>
+</ul>
+
+<h4 id="syntaxforannotatedprogram">syntax for annotated program</h4>
+
+<ul>
+<li><p>assumption<em>block := 
+@load _string</em> : <em>ltype</em> * ... * <em>ltype</em> -> <em>ltype</em> when <em>fol</em> with <em>fol</em> | ... | when <em>fol</em> with <em>fol</em> 
+<strong>|</strong> @load <em>string</em> : <em>ltype</em> * ... * <em>ltype</em> => <em>ltype</em> when <em>fol</em> with <em>fol</em> | ... | when <em>fol</em> with <em>fol</em>
+<strong>|</strong> @assume <em>fol</em>
+<strong>|</strong> @assume @Coq <em>string</em>
+<strong>|</strong> @definition <em>string</em> : <em>ltype</em> * ... * <em>type</em> -> Prop := <em>fol</em></p></li>
+
+<li><p>Annotated ERC program:</p></li>
+</ul>
+
+<pre><code>assumption_block
+
+@precondition fol
+@postcondition fol
+
+Input (string : dtype, string : dtype, ..., string : dtype)
+statement
+Return term
+</code></pre>
+
+<h4 id="loadingsingleandmultifunctions">loading single and multi functions:</h4>
+
+<p>The original <strong><em>ERC</em></strong> forces domain and codomain of single and multivalued function symbols. When one defines the function symbols in <strong>erc-vc-extract</strong>, they can decide whether the function symbol is meant to be single--valued or multivalued:</p>
+
+<pre><code class="  language- ">@load f : Z * Z * Z =&gt; Z 
+      when P1 with Q1 
+    | when P2 with Q2 
+    | ... 
+    | when Pn with Qn
+</code></pre>
+
+<p>loads the multivalued function symbol <code>f</code> to the context where $P<em>i \to Q</em>i$ are its specification. During translating the semantic of a function--call of <code>f</code>, the symbol will disappear (since we do not have power object in our language) and will be replaced with a predicated generated using the specification. </p>
+
+<p>On the other hand,</p>
+
+<pre><code class="  language- ">@load g : Z * Z * Z -&gt; R 
+      when P1 with Q1 
+    | when P2 with Q2 
+    | ... 
+    | when Pn with Qn
+</code></pre>
+
+<p>loads the function symbol <code>f</code> to the context and the function symbol won't disappear when we translate its function--call semantic; <code>f(x)</code> will be a number that is expressible in our language whose properties are defined by the specifications $P<em>i\to Q</em>i$.</p>
+
+<p>The <code>Pi</code> and <code>Qi</code> in specification may refer to the functions input values; for an example, consider $f : R \times R \to R$ and we want to say $x>y \to f(x,y) > 10$.  Then, $P := x > y$ and $Q := f(x,y) >10$. The function values are referred with <code>@n</code> where n is an index of the arguments (starting from $1$) and <code>_</code> will denote the function value in <code>Q</code>. Therefore, the function $f$ can be specified as:</p>
+
+<pre><code>@load f : R * R -&gt; R
+      when @1 &gt; @2 -&gt; _ &gt; 10.0
+</code></pre>
+
+<h4 id="coqtaginassumption">Coq tag in assumption</h4>
+
+<p>Using <code>@assume fol</code> adds the <code>fol</code> as an axiom to our assertion logic. It will be used to impose some facts about the assumed abstract functions; for an example, <strong>trisection.erc</strong> works on a function symbol <code>f</code> which is not an input but an assumed function. Hence, uniqueness of its root may be assumed using <code>@assume exists k : R, f(k) = 0.0</code>.</p>
+
+<p>Sometimes users will want to assume some fact using Coq defined predicate directly, instead of describing it in our assertion language. For an example, even if continuity of <code>f</code> can be described in our assertion language, in order to use Coq’s rich libraries reasoning about continuous functions’ properties, assuming the function’s continuity via $\epsilon-\delta$ won’t really help. Hence, using <code>@Coq</code> tag in <code>@assume</code> (<code>@assume @Coq continuity f</code>), <strong>erc-vc-extract</strong> will simply dump the whole string into <em>Coq</em>. However, it requires to be careful that if there is <code>@Coq</code> tag, <strong>erc-vc-extract</strong> doesn’t do any syntax or type checking.</p>
+
+<h4 id="definingpredicate">defining predicate</h4>
+
+<p>This is not really a necessary feature; however, it makes writing an annotated <strong>ERC</strong> program much easier.</p>
+
+<pre><code>@definition uniq : R * R -&gt; Prop := @1&lt;@2 /\ f(@1) &lt;0.0 &lt; f(@2) /\ exists! z:R, (@1&lt;z&lt;@2 /\ f(z) = 0.0)
+</code></pre>
+
+<p>is defining the predicate $uniq(a,b) := f \;\text{has a uniq root in }\; (a,b)$. See that $n$''th argument of the predicate is accessed by <code>@n</code>. Defining the predicate, it can be used in elsewhere so that it works as an abbreviation. Predicate call is expressed with <code>[ ]</code>;e.g., <code>True /\ uniq[x, y]</code>.</p>
+
+<h4 id="preandpostcondition">pre and postcondition</h4>
+
+<p>Pre and postcondition needs to refer to program's input values and its output value. Program's input values can be referred by using the input variable's name. Program's output value in postcondition can be referred with the symbol <code>_</code>. Consider a program <code>P</code> that returns <code>1</code> when <code>x&gt;y</code> and <code>0</code> when <code>y&gt;x</code>. Then the pre/postcondition will be written as:</p>
+
+<pre><code>@precondition x&gt;y \/ y&gt;x
+@postcondition x&gt;y -&gt; _ = 1 /\ y&gt;x -&gt; _ = 0
+Input (x : Real, y : Real)
+...
+</code></pre>
+
+<h4 id="variablescoping">variable scoping:</h4>
+
+<p>At the current stage of development, all the variable names (for both programming variable and logical variable) should be distinct, even for bounded ones. It was made this way to ease developing trivial quantifier reduction. The current development tries to reduce all trivial quantifiers, then convert it to be a prenex form. After converting to a prenex form, it converts once again to DNF formula. On the DNF formula <strong>erc-vc-extract</strong> checks trivially true / false clauses of arithmetics:</p>
+
+<pre><code>(x &gt; 10) /\ (x = 10) ... =&gt; false
+</code></pre>
+
+<p>If the second step of reduction only increases the number of literals, <strong>erc-vc-extract</strong> rolls back. Of course, having global distinction in variable is not really necessary, once we have an internal engine takes care of variable distinction, hence the restriction will be removed in the future.</p>
+
+</body>
+</html>
