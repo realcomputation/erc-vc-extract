@@ -2,9 +2,6 @@
 
 **erc-vc-extract** is an _OCaml_ program which extracts verification condition of an annotated **ERC** program written by _Sewon Park @ KAIST._
 
-- LiCS 2019 submission version of **erc-vc-extract** can be downloaded here: [download link]
-- Under development versions of **erc-vc-extract** can be accessed at its git repository: [git link]
-
 _OCaml_ is required to compile **erc-vc-extract**. You can build using ***make*** command.
 
 ```terminal
@@ -26,8 +23,6 @@ on an annotated (pre/postcondition and loop in/variant) program, generates the t
 
 ## Actual Syntax of Annotated ERC Program
   
-_ERClang.pdf_ in the downloaded files (repository) contains formal definition of syntax / semantics / verification rules of **ERC** program which the implementatio of **erc-vc-extract** is based on. However, the actual syntax of **ERC** described there and that are actually recognized by **erc-vc-extract** are slightly different.
-
 ### Syntax of Annotated ERC Program
 #### syntax of assertion language
 
