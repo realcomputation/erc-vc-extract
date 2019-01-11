@@ -654,19 +654,21 @@ and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 									fol_application (hol_semantic z1 ctx) (AVariable v1),
 									fol_application (hol_semantic z2 ctx) (AVariable v2))))))),
 				Conjunction(Identity(AInput, AZConst 0),
-					Conjunction(
-						Disjunction(
-							fol_application (hol_semantic z1 ctx) (AZConst 0),
-							fol_application (hol_semantic z2 ctx) (AZConst 0)),
+					Disjunction(
 						Disjunction(
 							Conjunction(
-								UniversialQ(v3, Int, Implication(fol_application (hol_semantic z1 ctx) (AVariable v3),
-																Identity(AZConst 0, AVariable v3))),
-								UniversialQ(v4, Int, Implication(fol_application (hol_semantic z2 ctx) (AVariable v4),
-																Identity(AZConst 0, AVariable v4)))),
-							ExistensialQ(v5, Int, ExistensialQ(v6, Int, 
-								Conjunction(fol_application (hol_semantic z1 ctx) (AVariable v5),
-											fol_application (hol_semantic z2 ctx) (AVariable v6))))))))
+								fol_application (hol_semantic z1 ctx) (AZConst 0),
+								UniversialQ(v3, Int, Implication(fol_application (hol_semantic z1 ctx) (AVariable v3), Identity (AVariable v3, AZConst 0)))),
+							Conjunction(
+								fol_application (hol_semantic z2 ctx) (AZConst 0),
+								UniversialQ(v4, Int, Implication(fol_application (hol_semantic z2 ctx) (AVariable v4), Identity (AVariable v4, AZConst 0))))),
+						Conjunction(
+							Conjunction(
+								ExistensialQ(v5, Int, fol_application (hol_semantic z1 ctx) (AVariable v5)),
+								ExistensialQ(v6, Int, fol_application (hol_semantic z2 ctx) (AVariable v6))),
+							Disjunction(
+								fol_application (hol_semantic z1 ctx) (AZConst 0),
+								fol_application (hol_semantic z2 ctx) (AZConst 0))))))
 
 	(*  {v : ((v=1 /\ exists z1 z2, (z1 neq 0 /\ z2 neq 0) /\ (h(t1)(z1) \/ h(t2)(z2))) \/ (v=0 /\ h(t1)(0) /\ h(t2)(0))} *)
 	|   Or (z1, z2) -> 
@@ -680,29 +682,26 @@ and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 			Disjunction(
 				Conjunction(
 					Identity (AInput, AZConst 0),
-						Conjunction(
-							fol_application (hol_semantic z1 ctx) (AZConst 0),
-							fol_application (hol_semantic z2 ctx) (AZConst 0))),
+				Conjunction(
+					fol_application (hol_semantic z1 ctx) (AZConst 0),
+					fol_application (hol_semantic z2 ctx) (AZConst 0))),
 				Conjunction(Identity(AInput, AZConst 1),
-					Conjunction(
-						ExistensialQ(v1, Int, ExistensialQ(v2, Int,
-							Conjunction(
-								Conjunction(
-									 Neg (Identity (AVariable v1, AZConst 0)),
-									 Neg (Identity (AVariable v2, AZConst 0))
-											),
-							Disjunction(
-								fol_application (hol_semantic z1 ctx) (AVariable v1),
-								fol_application (hol_semantic z2 ctx) (AVariable v2))))),
+					Disjunction(
 						Disjunction(
 							Conjunction(
-								UniversialQ(v3, Int, Implication(fol_application (hol_semantic z1 ctx) (AVariable v3),
-														Neg (Identity(AZConst 0, AVariable v3)))),
-								UniversialQ(v4, Int, Implication(fol_application (hol_semantic z2 ctx) (AVariable v4),
-														Neg (Identity(AZConst 0, AVariable v4))))),
-							ExistensialQ(v5, Int, ExistensialQ(v6, Int, 
-								Conjunction(fol_application (hol_semantic z1 ctx) (AVariable v5),
-											fol_application (hol_semantic z2 ctx) (AVariable v6))))))))
+								ExistensialQ(v1, Int, fol_application (hol_semantic z1 ctx) (AVariable v1)),
+								Neg (fol_application (hol_semantic z1 ctx) (AZConst 0))),
+							Conjunction(
+								ExistensialQ(v2, Int, fol_application (hol_semantic z2 ctx) (AVariable v2)),
+								Neg (fol_application (hol_semantic z2 ctx) (AZConst 0)))),
+
+						Conjunction(
+							Conjunction(
+								ExistensialQ(v3, Int, fol_application (hol_semantic z1 ctx) (AVariable v5)),
+								ExistensialQ(v4, Int, fol_application (hol_semantic z2 ctx) (AVariable v6))),
+							Disjunction(
+								ExistensialQ(v5, Int, Conjunction(Neg (Identity(AZConst 0, AVariable v5)), fol_application (hol_semantic z1 ctx) (AVariable v5))),
+								ExistensialQ(v6, Int, Conjunction(Neg (Identity(AZConst 0, AVariable v6)), fol_application (hol_semantic z2 ctx) (AVariable v6))))))))
 
 
 (*	Primitive functions *)

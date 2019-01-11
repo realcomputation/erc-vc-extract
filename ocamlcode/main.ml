@@ -25,7 +25,7 @@ let main () =
 					let lexbuf = Lexing.from_channel(file) in
 					try Parser.prog Lexer.token lexbuf
 					with
-					| TypingError (a, b, c) ->
+(* 					| TypingError (a, b, c) ->
 						print_endline (a^":\n"^b^" is ill-typed under context:\n\n"^(print_context c))
 					| PlainError (a) ->
 						print_endline a
@@ -36,13 +36,16 @@ let main () =
 					        let curr = lexbuf.Lexing.lex_curr_p in
 					        let line = curr.Lexing.pos_lnum in
 					        print_endline ("Cannot assumption "^s^" in line "^(string_of_int line));
-						end
+						end *)
 
 					| exn -> 
 				        (
 				        let curr = lexbuf.Lexing.lex_curr_p in
 				        let line = curr.Lexing.pos_lnum in
 				        let token = Lexing.lexeme lexbuf in
+				        if token = "" then print_endline "error! error message being informative being developed\n 
+				        It can be either type error or a fatal error in the development. Please contact developers 
+				        if you are confident that its not an intended error." else
 				        print_endline ("Cannot parse "^token^" in line "^(string_of_int line));
 				    	) 
 					)
