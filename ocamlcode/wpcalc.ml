@@ -1,4 +1,3 @@
-open Datatype
 open Ast
 open Context
 open Typing

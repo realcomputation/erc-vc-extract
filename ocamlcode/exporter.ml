@@ -1,6 +1,5 @@
 open Context
 open Typing
-open Datatype 
 open Ast
 open Logic
 open Log

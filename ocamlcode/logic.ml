@@ -1,5 +1,4 @@
 open Hashtbl
-open Datatype
 open Ast
 open Errors
 

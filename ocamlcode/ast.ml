@@ -1,5 +1,4 @@
 open Hashtbl
-open Datatype
 
 (* Data types *)
 type data_type =
@@ -72,6 +71,32 @@ type statementtree =
 	|   ArrayAssign of string * termtree * termtree
 	|   Conditional of termtree * statementtree * statementtree
 	|   Whileloop of termtree * statementtree * foltree * aterm 
+
+
+type termtree_typed =
+		Variable_typed of data_type * string
+	|   Const_typed of data_type * int
+	|   RConst_typed of data_type * int
+	(*	Arithmetic operators *)
+	|   Mult_typed of data_type * termtree * termtree
+	|   Div_typed of data_type * termtree	
+	|   Plus_typed of data_type * termtree * termtree
+	|   Minus_typed of data_type * termtree
+	(*	Boolean related operations *)	
+	|   Gt_typed of data_type * termtree * termtree
+	|   Eq_typed of data_type * termtree * termtree
+	|   Neg_typed of data_type *  termtree
+	|   And_typed of data_type * termtree * termtree
+	|   Or_typed of data_type * termtree * termtree
+	(*	Primitive functions *)
+	|   Select_typed of data_type * termtree list
+	|   Iota_typed of data_type * termtree
+	|   Max_typed of data_type * termtree * termtree
+	|   Inlinecond_typed of data_type * termtree * termtree * termtree
+	(*	ETC *)
+	|   Access_typed of data_type * string * termtree
+	|   Application_typed of data_type * string * (termtree list)
+	|   Test_typed of data_type * termtree
 
 
 

@@ -1,5 +1,4 @@
 open Hashtbl
-open Datatype
 open Ast
 exception Illtyped of string
 exception TermTypeError of ((string, data_type) Hashtbl.t) * termtree
