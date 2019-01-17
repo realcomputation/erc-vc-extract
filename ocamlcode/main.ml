@@ -1,6 +1,6 @@
 open String 
 open Logic
-open Wpcalc
+open Vccalc
 open Exporter
 open Context
 open Errors 

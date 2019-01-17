@@ -1,9 +1,9 @@
-erc-vc-extract: lexer.cmo ast.cmo context.cmo typing.cmo utilities.cmo loader.cmo logic.cmo wpcalc.cmo initialcoq.cmo exporter.cmo parser.cmo main.cmo 
-	ocamlc -o erc-vc-extract str.cma lexer.cmo utilities.cmo ast.cmo context.cmo errors.cmo typing.cmo logic.cmo loader.cmo  canonical.cmo reduction.cmo log.cmo initialcoq.cmo exporter.cmo wpcalc.cmo parser.cmo main.cmo 
+erc-vc-extract: lexer.cmo ast.cmo context.cmo typing.cmo utilities.cmo loader.cmo logic.cmo vccalc.cmo initialcoq.cmo exporter.cmo parser.cmo main.cmo 
+	ocamlc -o erc-vc-extract str.cma lexer.cmo utilities.cmo ast.cmo context.cmo errors.cmo typing.cmo logic.cmo loader.cmo  canonical.cmo reduction.cmo log.cmo initialcoq.cmo exporter.cmo vccalc.cmo parser.cmo main.cmo 
 errors.cmo: errors.ml ast.ml context.ml
 	ocamlc -c errors.ml
-wpcalc.cmo: wpcalc.ml logic.cmo typing.cmo reduction.cmo canonical.cmo exporter.cmo log.cmo loader.cmo
-	ocamlc -c wpcalc.ml
+vccalc.cmo: vccalc.ml logic.cmo typing.cmo reduction.cmo canonical.cmo exporter.cmo log.cmo loader.cmo
+	ocamlc -c vccalc.ml
 exporter.cmo: exporter.ml initialcoq.cmo loader.cmo
 	ocamlc -c exporter.ml
 initialcoq.cmo: initialcoq.ml
@@ -32,7 +32,7 @@ parser.ml: parser.mli
 	ocamlc -c parser.mli
 lexer.cmo: lexer.ml parser.ml
 	ocamlc -c lexer.ml
-parser.cmo: parser.ml ast.cmo wpcalc.cmo loader.cmo
+parser.cmo: parser.ml ast.cmo vccalc.cmo loader.cmo
 	ocamlc -c parser.ml
 main.cmo: main.ml parser.cmo lexer.cmo
 	ocamlc -c main.ml

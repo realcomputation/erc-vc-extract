@@ -7,7 +7,7 @@
 	open Context
 	open Typing
 	open Logic
-	open Wpcalc
+	open Vccalc
 	open Reduction
 	open Exporter
 	open Log
