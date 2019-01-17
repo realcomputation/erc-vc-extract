@@ -6,114 +6,16 @@ open Reduction
 open Exporter
 open Errors
 open Log
+open Utilities
+open Loader
 
 
-(* counter for new variables *)
-let rec existence_from_list (s : typed_variable list) (f : foltree) =
-	match s with 
-	| (d, v) :: l -> ExistensialQ(v, d, existence_from_list l f)
-	| [] -> f
-
-(* counter for new variables *)
-let rec universial_from_list (s : typed_variable list) (f : foltree) =
-	match s with 
-	| (d, v) :: l -> UniversialQ(v, d, universial_from_list l f)
-	| [] -> f
-
-let rec bind_list a f =
-	match a with
-	| v::l -> f v :: bind_list l f
-	| [] -> []
-
-let rec merge_list a b =
-	match a, b with
-	| a::l1, b::l2 -> (a, b) :: (merge_list l1 l2)
-	| [],[] -> []
-	| _, _ -> raise (PlainError "merging list of different size")
-
-let rec split_list a =
-	match a with
-	| (c, d) :: l -> let k = split_list l in (c :: fst k, d :: snd k)	
-	| [] -> ([], [])
-
-let fresh_of_type a =
-	let v6 = ("_v"^(string_of_int (!freshvar +1))) in
-	(freshvar := !freshvar+1);
-	(a, v6)
-
-let rec list_to_conj (f : foltree list) =
-	match f with
-	| f :: [] -> f
-	| f :: l -> Conjunction(f, list_to_conj l)
-	| [] -> True
-
-let rec list_to_disj (f : foltree list) = 
-	match f with
-	| f :: [] -> f
-	| f :: l -> Disjunction(f, list_to_disj l)
-	| [] -> True
 
 
-let impl_list (f : (foltree * foltree) list) : foltree list = 
-	bind_list f (fun k -> Implication(fst k, snd k))
-
-
-let rec typed_list (d : data_type list) (i : int) : typed_variable list =
-	match d with
-	| d :: l -> (d, "@"^(string_of_int i)) :: (typed_list l (i+1))
-	| _  -> []
-
-
-let rec load_funfol (s : string) (d : (data_type list) * data_type) (f : (foltree * foltree) list) : bool = 
-	match f with
-	| f :: l ->
-		let ctx = Hashtbl.copy empty_ctx in
-		(match load_input_ctx ctx (typed_list (fst d) 1) with
-		| Some ctx -> 
-			let ctxf = Hashtbl.copy ctx in
-			Hashtbl.add ctxf "@res" (snd d);
-			if (foltree_well_typed (fst f) ctx) && (foltree_well_typed (snd f) ctxf) then
-			load_funfol s d l else false
-		| None -> raise (PlainError "cannot load input"))
-	| [] -> true
-
-let load_mfunfol (s : string) (d : (data_type list) * data_type) (f : (foltree * foltree) list) = 
-	if load_funfol s d f then
-	(Hashtbl.add mfunfol s f; true)
-	else false
-
-let sfunfol_to_theory (s : string) (d : (data_type list) * data_type) (f : (foltree * foltree)) : foltree =
-	let (dom, codom) = f in
-	let tvs = bind_list (fst d) (fun k -> fresh_of_type k) in
-	let names = snd (split_list tvs) in 
-	let vars = merge_list (snd (split_list (typed_list (fst d) 1))) (bind_list names (fun k -> AVariable k)) in
-	let props = Implication(dom, codom) in
-	universial_from_list tvs (fol_replace_list props ( ("@res", AApplication (s, bind_list names (fun k -> AVariable k)))::vars ))
-
-
-let rec load_theories (th : foltree list) : bool =
-	match th with
-	| t :: tl -> if (foltree_well_typed t empty_ctx) then ((theories := t :: !theories) ; load_theories tl) else false
-	| [] -> true
-
-let load_sfunfol (s : string) (d : (data_type list) * data_type) (f : (foltree * foltree) list) = 
-	if load_funfol s d f
-	 && 
-		load_theories (bind_list f (fun k -> sfunfol_to_theory s d k)) 
-		then
-		(Hashtbl.add sfunfol s f; true)
-	else false
-
-let rec load_pdefi (s : string) (d : data_type list) (f : foltree) =
-	let ctx = Hashtbl.copy empty_ctx in
-	(match load_input_ctx ctx (typed_list d 1) with
-		| Some ctx -> if (foltree_well_typed f ctx) then (Hashtbl.add pdefi s (d, f); true) else false
-		| _ -> false
-	)
 
 (* print a predicate which exactly defines semantic of t under ctx *)
 let rec hfun_sem (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree =
-	match term_type t ctx with
+	match termtree_type t ctx with
 	| None -> raise (Illtyped "predicate semantic extraction ill-typed")
 	| Some dtype ->
 	(	
@@ -397,7 +299,7 @@ let rec hfun_sem (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 		if Hashtbl.mem mfun s then
 		begin
 			(* list of fresh typed variables *)
-			let tvs = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error occrued")) in
+			let tvs = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error occrued")) in
 			(* conjunctive form of that tvs satisfies h(zi)(tvs_i) *)
 			let term1 = list_to_conj (bind_list tvs (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			(* /\ p_i -> q_i *)
@@ -411,7 +313,7 @@ let rec hfun_sem (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 			existence_from_list (snd (split_list tvs)) (Conjunction(term1, fol_replace nterm "@res" AInput)) in
 
 
-(* 			let tvs2 = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "")) in
+(* 			let tvs2 = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "")) in
 			let term12 = list_to_conj (bind_list tvs2 (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in *)
 			let term22 = list_to_disj (fst (split_list (Hashtbl.find mfunfol s))) in 
 (* 			let names2 = snd (split_list (snd (split_list tvs2))) in
@@ -426,14 +328,14 @@ let rec hfun_sem (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 		else
 		if Hashtbl.mem sfun s then
 		begin
-			let tvs = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error occured")) in
+			let tvs = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error occured")) in
 			let term1 = list_to_conj (bind_list tvs (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			let names = snd (split_list (snd (split_list tvs))) in
 			let firstpart = existence_from_list (snd (split_list tvs)) (Conjunction(term1, 
 															Identity(AInput,
 																AApplication(s, bind_list names (fun k -> AVariable k))))) in 
 			
-(* 			let tvs2 = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "")) in
+(* 			let tvs2 = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "")) in
 			let term12 = list_to_conj (bind_list tvs2 (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
  *)			let term22 = list_to_disj (fst (split_list (Hashtbl.find sfunfol s))) in 
 (* 			let names2 = snd (split_list (snd (split_list tvs2))) in
@@ -464,7 +366,7 @@ let rec hfun_sem (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 
 (* print a predicate which exactly defines semantic of t under ctx *)
 and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree =
-	match term_type t ctx with
+	match termtree_type t ctx with
 	| None -> raise (Illtyped "predicate semantic extraction ill-typed")
 	| Some dtype ->
 	(	
@@ -819,7 +721,7 @@ and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 		if Hashtbl.mem mfun s then
 		begin
 			(* list of fresh typed variables *)
-			let tvs = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
+			let tvs = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
 			(* conjunctive form of that tvs satisfies h(zi)(tvs_i) *)
 			let term1 = list_to_conj (bind_list tvs (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			(* /\ p_i -> q_i *)
@@ -833,7 +735,7 @@ and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 			existence_from_list (snd (split_list tvs)) (Conjunction(term1, fol_replace nterm "@res" AInput)) in
 
 
-			let tvs2 = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
+			let tvs2 = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
 			let term12 = list_to_conj (bind_list tvs2 (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			let term22 = list_to_disj (fst (split_list (Hashtbl.find mfunfol s))) in 
 			let names2 = snd (split_list (snd (split_list tvs2))) in
@@ -846,14 +748,14 @@ and hol_semantic (t : termtree) (ctx : (string, data_type) Hashtbl.t) : foltree 
 		else
 		if Hashtbl.mem sfun s then
 		begin
-			let tvs = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
+			let tvs = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
 			let term1 = list_to_conj (bind_list tvs (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			let names = snd (split_list (snd (split_list tvs))) in
 			let firstpart = existence_from_list (snd (split_list tvs)) (Conjunction(term1, 
 															Identity(AInput,
 																AApplication(s, bind_list names (fun k -> AVariable k))))) in 
 			
-			let tvs2 = bind_list tl (fun t -> match term_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
+			let tvs2 = bind_list tl (fun t -> match termtree_type t ctx with Some d -> (t, fresh_of_type d) | _ -> raise (PlainError "error")) in
 			let term12 = list_to_conj (bind_list tvs2 (fun t -> let (term, (tp, name)) = t in fol_application (hol_semantic term ctx) (AVariable name))) in
 			let term22 = list_to_disj (fst (split_list (Hashtbl.find sfunfol s))) in 
 			let names2 = snd (split_list (snd (split_list tvs2))) in
@@ -920,7 +822,7 @@ let rec bind_with_fresh (f : foltree) (v : typed_variable list) : foltree =
 
 
 (* only will used during wp_calc simplifying *)
-let fol_application_simpl (a : foltree) (x : aterm) =
+let fol_application_simpl (a : foltree) (x : atermtree) =
 	let simpl =	fol_reduce (fol_application a x) in
 	reduction_log := (!reduction_log)^("\n================\n\n application \n\n"^(print_foltree a)^"\n\n is further reduced to \n\n"^(print_foltree simpl));
 	simpl
@@ -1068,7 +970,7 @@ let wp_calc_prog (vr : typed_variable list) (s : statementtree) (t : termtree) (
 	(freshvar := !freshvar+2);
 	match load_input_ctx ctx (alter_tv_list vr) with
 	| Some ctx ->
-		(	match term_type t ctx with
+		(	match termtree_type t ctx with
 			| Some Int -> 	let postcond = Conjunction(ExistensialQ(v1, Int, fol_application (hol_semantic t ctx) (AVariable v1)),
 													UniversialQ(v2, Int, Implication (fol_application (hol_semantic t ctx) (AVariable v2), fol_replace (alter_variables q vr) "@res" (AVariable v2))))
 							in
@@ -1087,7 +989,7 @@ let wp_calc_prog (vr : typed_variable list) (s : statementtree) (t : termtree) (
 
 let rec print_sem_list (at : termtree list) (ctx : (string, data_type) Hashtbl.t) =
 	match at with
-	| a :: l -> (match term_type a ctx with
+	| a :: l -> (match termtree_type a ctx with
 				| Some _ -> let sem = hol_semantic a ctx in 
 							let simpl = fol_reduce sem in
 							"==========\nSemantic of "^(print_ttree a)^" is:\n\n"^
@@ -1120,20 +1022,20 @@ let wp_run (precond : foltree) (postcond : foltree) (vr : typed_variable list) (
 		match load_input_ctx ctx vr with
 	  	| Some ctx ->
 		(
-			if (foltree_well_typed precond ctx)
+			if (foltree_type precond ctx)
 			then
 		 	(
 		 		let ctxo = Hashtbl.copy ctx in 
 		 		(
-		 			match welltypedstatement s ctx false with
+		 			match statementtree_type s ctx false with
 			 		| Some ctxf -> 
 		 			(
- 						match term_type rt ctxf with
+ 						match termtree_type rt ctxf with
  						| Some t -> 
 						(
 							return_type_f := t;
 							Hashtbl.add ctxo "@res" t; 
-							if foltree_well_typed postcond ctxo 
+							if foltree_type postcond ctxo 
 							then wp_calc_prog vr s rt precond postcond ctxf
 							else raise (TypingError ("post condition is ill-typed", print_foltree postcond, ctxf))
 						)

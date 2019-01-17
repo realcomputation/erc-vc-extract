@@ -1,9 +1,20 @@
 open Hashtbl
 open Ast
 
+
 (* index used to introduce a fresh variables *)
 let freshvar : int ref =  ref 0
 
+let fresh_of_type a =
+	let v6 = ("_v"^(string_of_int (!freshvar +1))) in
+	(freshvar := !freshvar+1);
+	(a, v6)
+
+let rec typed_list (d : data_type list) (i : int) : typed_variable list =
+	match d with
+	| d :: l -> (d, "@"^(string_of_int i)) :: (typed_list l (i+1))
+	| _  -> []
+	
 (* index used to introduce a fresh theorem id for Coq export *)
 let theoremid : int ref =  ref 0
 
@@ -39,31 +50,4 @@ let ctx_mem (ctx : (string, data_type) Hashtbl.t) (s : string) : bool =
 
 (* return type stored here...? *)
 let return_type_f : data_type ref = ref Int
-
-
-(* load the programming variables *)
-let rec load_pvariables (s : statementtree) : unit =
-	match s with
-	|   Sequence (s1, s2)  -> load_pvariables s1; load_pvariables s2
-
-	|   Newvariable (s, t) -> Hashtbl.add pvariables s true
-
-	| _ -> ()
-
-
-(* Try loading given list of typed variables into the given context *)
-let rec load_input_ctx (ctx : (string, data_type) Hashtbl.t) (vl : typed_variable list) = 
-	match vl with
-	| (tp, s) :: vl -> (if (ctx_mem ctx s) then None else (Hashtbl.add ctx s tp; load_input_ctx ctx vl))
-	| _ -> Some ctx
-
-
-(* Try loading multi/single valued functions *)
-let load_mfun (s : string) (d : (data_type list) * data_type) : bool =
-	if (ctx_mem empty_ctx s) then false else (Hashtbl.add mfun s d; true)
-
-let load_sfun (s : string) (d : (data_type list) * data_type) : bool =
-	if (ctx_mem empty_ctx s) then false else (Hashtbl.add sfun s d; true)
-
-
 

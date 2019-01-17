@@ -4,11 +4,11 @@ open Logic
 open Log
 open Errors 
 
-let rec aterm_simpl (at : aterm) : aterm = 
+let rec atermtree_simpl (at : atermtree) : atermtree = 
 	match at with
-	|   Prec t -> Prec (aterm_simpl t)
+	|   Prec t -> Prec (atermtree_simpl t)
 	|   APlus (t1, t2) -> 
-		(match aterm_simpl t1, aterm_simpl t2 with
+		(match atermtree_simpl t1, atermtree_simpl t2 with
 		| AZConst b1, AZConst b2 -> AZConst (b1 + b2)
 		| ARConst b1, ARConst b2 -> ARConst (b1 + b2)
 		| AZConst 0, q -> q
@@ -18,7 +18,7 @@ let rec aterm_simpl (at : aterm) : aterm =
 		| p, q -> APlus(p,q)
 		)
 	|   AMult (t1, t2) ->
-		(match aterm_simpl t1, aterm_simpl t2 with
+		(match atermtree_simpl t1, atermtree_simpl t2 with
 		| ARConst 0, q -> ARConst 0
 		| p, ARConst 0 -> ARConst 0
 		| ARConst 1, q -> q
@@ -26,10 +26,10 @@ let rec aterm_simpl (at : aterm) : aterm =
 		| p, q -> AMult (p, q)
 		)
 	|   ADiv t -> 
-		(match aterm_simpl t with
+		(match atermtree_simpl t with
 		| ARConst 1 -> ARConst 1
 		| ARConst (-1) -> ARConst (-1)
-		| _ ->	ADiv (aterm_simpl t)
+		| _ ->	ADiv (atermtree_simpl t)
 		)
 	|   AMinus t -> 
 		(
@@ -41,16 +41,16 @@ let rec aterm_simpl (at : aterm) : aterm =
 	|   _ -> at
 
 
-let rec fol_aterm_simpl (ft : foltree) : foltree =
+let rec fol_atermtree_simpl (ft : foltree) : foltree =
 	match ft with
-	| Neg (f) -> Neg (fol_aterm_simpl f)
-	| Identity (t1, t2) -> Identity (aterm_simpl t1, aterm_simpl t2)
-	| Greater (t1, t2) -> Greater (aterm_simpl t1, aterm_simpl t2)
-	| Implication (f1, f2) -> Implication (fol_aterm_simpl f1, fol_aterm_simpl f2)
-	| UniversialQ (s, t, f) -> UniversialQ (s, t, fol_aterm_simpl f)
-	| ExistensialQ (s, t, f) -> ExistensialQ (s, t, fol_aterm_simpl f)
-	| Disjunction (f1, f2) -> Disjunction (fol_aterm_simpl f1, fol_aterm_simpl f2)
-	| Conjunction (f1, f2) -> Conjunction (fol_aterm_simpl f1, fol_aterm_simpl f2)
+	| Neg (f) -> Neg (fol_atermtree_simpl f)
+	| Identity (t1, t2) -> Identity (atermtree_simpl t1, atermtree_simpl t2)
+	| Greater (t1, t2) -> Greater (atermtree_simpl t1, atermtree_simpl t2)
+	| Implication (f1, f2) -> Implication (fol_atermtree_simpl f1, fol_atermtree_simpl f2)
+	| UniversialQ (s, t, f) -> UniversialQ (s, t, fol_atermtree_simpl f)
+	| ExistensialQ (s, t, f) -> ExistensialQ (s, t, fol_atermtree_simpl f)
+	| Disjunction (f1, f2) -> Disjunction (fol_atermtree_simpl f1, fol_atermtree_simpl f2)
+	| Conjunction (f1, f2) -> Conjunction (fol_atermtree_simpl f1, fol_atermtree_simpl f2)
 	| _ -> ft
 
 
@@ -103,7 +103,7 @@ let rec simplify_t (l : foltree) =
 	| _ -> l)
 
 
-let aterm_neq (a1 : aterm) (a2 : aterm) =
+let atermtree_neq (a1 : atermtree) (a2 : atermtree) =
 	match a1, a2 with
 	| AZConst z1, AZConst z2 -> (if z1 = z2 then false else true)
 	| ARConst z1, ARConst z2 -> (if z1 = z2 then false else true)
@@ -115,10 +115,10 @@ let rec simplify_i (l : foltree) : foltree =
 	match l with
 	|   Neg (t) -> Neg (simplify_i t)
 	|   Identity (a1, a2) -> 
-			let l1 = aterm_linear_canonical (APlus(a1, AMinus(a2))) in
+			let l1 = atermtree_linear_canonical (APlus(a1, AMinus(a2))) in
 			let l2 = int_linear_canonical (APlus(a1, AMinus (a2))) in 
 			(match l1, l2 with
-			| Some lt, _ -> let c = clean_aterm_linear lt in
+			| Some lt, _ -> let c = clean_atermtree_linear lt in
 						(match c with
 						| ([], (0, _)) -> True
 						| ([], (_, _)) -> False
@@ -130,7 +130,7 @@ let rec simplify_i (l : foltree) : foltree =
 						| ([], _) -> False
 						| _ -> l
 						)
-			| _, _ -> if aterm_eq a1 a2 then True else l
+			| _, _ -> if atermtree_eq a1 a2 then True else l
 			)
 	|   Implication (l1, l2) -> Implication(simplify_i l1, simplify_i l2)
 	|   Disjunction (l1, l2) -> Disjunction(simplify_i l1, simplify_i l2)
@@ -143,22 +143,22 @@ let rec simplify_i (l : foltree) : foltree =
 
 
 (* reduce existential terms *)
-let rec find_ex (l : foltree) (s : string) : aterm list = 
+let rec find_ex (l : foltree) (s : string) : atermtree list = 
 	match l with
 	| Conjunction (l1, l2) -> (find_ex l1 s) @ (find_ex l2 s)
 	| Identity (AVariable v, AVariable w) -> if v = s then [AVariable w] else (if w = s then [AVariable v] else [])
 	| Identity (AVariable v, a) -> if v = s then [a] else []
 	| Identity (a, AVariable v) -> if v = s then [a] else []
 	| Identity (a, b) -> 
-		(match aterm_linear_canonical (APlus (a, (AMinus b))), int_linear_canonical (APlus (a, (AMinus b))) with
+		(match atermtree_linear_canonical (APlus (a, (AMinus b))), int_linear_canonical (APlus (a, (AMinus b))) with
 		| Some lin, _ -> 
 			(match find_var_linear_identity lin s with
-			| Some at -> [ aterm_simpl at]
+			| Some at -> [ atermtree_simpl at]
 			| _ -> []
 			)
 		| _, Some lint ->
 			(match find_var_int_identity lint s with
-			| Some at -> [aterm_simpl at]
+			| Some at -> [atermtree_simpl at]
 			| _ -> []
 			)
 		| _, _ -> []
@@ -166,7 +166,7 @@ let rec find_ex (l : foltree) (s : string) : aterm list =
 	| _ -> []
 
 
-let rec find_nex (l : foltree) (s : string) : aterm list =
+let rec find_nex (l : foltree) (s : string) : atermtree list =
 	match l with 
 	| Disjunction (l1, l2) -> find_nex l1 s @ find_nex l2 s
 	| Neg(Identity (AVariable a1, a2)) -> if a1 = s then [a2] else []
@@ -443,10 +443,10 @@ let rec fol_syn_eq (f1 : foltree) (f2 : foltree) : bool =
 	match f1, f2 with
 	|	True, True -> true
 	|   False, False -> true
-	|   Identity (a, b), Identity (c, d) -> aterm_eq a c && aterm_eq b d 
+	|   Identity (a, b), Identity (c, d) -> atermtree_eq a c && atermtree_eq b d 
 	|   Neg (t1), Neg(t2) -> fol_syn_eq t1 t2
-	|   Greater (a, b), Greater (c, d) -> aterm_eq a c && aterm_eq b d
-	|   Predicate (s1, t1), Predicate (s2, t2) -> s1=s2 && aterm_eq_list t1 t2
+	|   Greater (a, b), Greater (c, d) -> atermtree_eq a c && atermtree_eq b d
+	|   Predicate (s1, t1), Predicate (s2, t2) -> s1=s2 && atermtree_eq_list t1 t2
 	|   _ -> false
 
 (* test syntactic equality of f1 and f2 *)

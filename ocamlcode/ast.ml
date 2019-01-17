@@ -1,5 +1,5 @@
 open Hashtbl
-
+open Utilities
 (* Data types *)
 type data_type =
 		Real 
@@ -9,33 +9,102 @@ type data_type =
 
 type typed_variable = data_type * string
 
+
+type infilepos = { infile_line : int }
+
+(* pre - ast with in-file position tagged. *)
+type aterm_pre =
+		AZConst_pre of infilepos * int
+	|   ARConst_pre of infilepos * int
+	|   Prec_pre of infilepos * aterm_pre
+	|   APlus_pre of infilepos * aterm_pre * aterm_pre
+	|   AMult_pre of infilepos * aterm_pre * aterm_pre
+	|   ADiv_pre of infilepos * aterm_pre
+	|   AMinus_pre of infilepos * aterm_pre
+	|   AVariable_pre of infilepos * string
+	|   AApplication_pre of infilepos * string * (aterm_pre list)
+	|   AProjection_pre of infilepos * aterm_pre * aterm_pre
+	|   ASub_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   AInput_pre of infilepos
+
+type fol_pre = 
+		True_pre of infilepos
+	|   False_pre of infilepos
+	|   Identity_pre of infilepos * aterm_pre * aterm_pre
+	|   Neg_pre of infilepos * fol_pre
+	|   Greater_pre of infilepos * aterm_pre * aterm_pre
+	|   Implication_pre of infilepos * fol_pre * fol_pre
+	|   UniversialQ_pre of infilepos * string * data_type * fol_pre
+	|   ExistensialQ_pre of infilepos * string * data_type * fol_pre
+	|   Disjunction_pre of infilepos * fol_pre * fol_pre
+	|   Conjunction_pre of infilepos * fol_pre * fol_pre
+	|   Predicate_pre of infilepos * string * (aterm_pre list) 
+
+type term_pre = 
+		Variable of infilepos * string
+	|   Const_pre of infilepos * int
+	|   RConst_pre of infilepos * int
+	(*	Arithmetic operators *)
+	|   Mult_pre of infilepos * term_pre * term_pre
+	|   Div_pre of infilepos * term_pre	
+	|   Plus_pre of infilepos * term_pre * term_pre
+	|   Minus_pre of infilepos * term_pre
+	(*	Boolean related operations *)	
+	|   Gt_pre of infilepos * term_pre * term_pre
+	|   Eq_pre of infilepos * term_pre * term_pre
+	|   Neg_pre of infilepos *  term_pre
+	|   And_pre of infilepos * term_pre * term_pre
+	|   Or_pre of infilepos * term_pre * term_pre
+	(*	Primitive functions *)
+	|   Select_pre of infilepos * term_pre list
+	|   Iota_pre of infilepos * term_pre
+	|   Max_pre of infilepos * term_pre * term_pre
+	|   Inlinecond_pre of infilepos * term_pre * term_pre * term_pre
+	(*	ETC *)
+	|   Access_pre of infilepos * string * term_pre
+	|   Application_pre of infilepos * string * (term_pre list)
+	|   Test_pre of infilepos * term_pre
+
+type statement_pre =
+		Empty_pre of infilepos 
+	|   Sequence_pre of infilepos * statement_pre * statement_pre
+	|   Newvariable_pre of infilepos * string * term_pre
+	|   Assignment_pre of infilepos * string * term_pre
+	|   ArrayAssign_pre of infilepos * string * term_pre * term_pre
+	|   Conditional_pre of infilepos * term_pre * statement_pre * statement_pre
+	|   Whileloop_pre of infilepos * term_pre * statement_pre * fol_pre * aterm_pre 
+
+
+
+
+
 (* AST of Assertion Languages *)
-type aterm =
+type atermtree =
 		AZConst of int
 	|   ARConst of int
-	|   Prec of aterm
-	|   APlus of aterm * aterm
-	|   AMult of aterm * aterm
-	|   ADiv of aterm
-	|   AMinus of aterm
+	|   Prec of atermtree
+	|   APlus of atermtree * atermtree
+	|   AMult of atermtree * atermtree
+	|   ADiv of atermtree
+	|   AMinus of atermtree
 	|   AVariable of string
-	|   AApplication of string * (aterm list)
-	|   AProjection of aterm * aterm
-	|   ASub of aterm * aterm * aterm
+	|   AApplication of string * (atermtree list)
+	|   AProjection of atermtree * atermtree
+	|   ASub of atermtree * atermtree * atermtree
 	|   AInput
 
 type foltree = 
 		True
 	|   False
-	|   Identity of aterm * aterm
+	|   Identity of atermtree * atermtree
 	|   Neg of foltree
-	|   Greater of aterm * aterm
+	|   Greater of atermtree * atermtree
 	|   Implication of foltree * foltree
 	|   UniversialQ of string * data_type * foltree
 	|   ExistensialQ of string * data_type * foltree
 	|   Disjunction of foltree * foltree
 	|   Conjunction of foltree * foltree
-	|   Predicate of string * (aterm list) 
+	|   Predicate of string * (atermtree list) 
 
 (* AST of ERC Programming Language *)
 type termtree = 
@@ -70,7 +139,7 @@ type statementtree =
 	|   Assignment of string * termtree
 	|   ArrayAssign of string * termtree * termtree
 	|   Conditional of termtree * statementtree * statementtree
-	|   Whileloop of termtree * statementtree * foltree * aterm 
+	|   Whileloop of termtree * statementtree * foltree * atermtree 
 
 
 type termtree_typed =
@@ -101,6 +170,34 @@ type termtree_typed =
 
 
 
+(* Utilities: constructing fol from/to list *)
+let rec existence_from_list (s : typed_variable list) (f : foltree) =
+	match s with 
+	| (d, v) :: l -> ExistensialQ(v, d, existence_from_list l f)
+	| [] -> f
+
+let rec universial_from_list (s : typed_variable list) (f : foltree) =
+	match s with 
+	| (d, v) :: l -> UniversialQ(v, d, universial_from_list l f)
+	| [] -> f
+
+let rec list_to_conj (f : foltree list) =
+	match f with
+	| f :: [] -> f
+	| f :: l -> Conjunction(f, list_to_conj l)
+	| [] -> True
+
+let rec list_to_disj (f : foltree list) = 
+	match f with
+	| f :: [] -> f
+	| f :: l -> Disjunction(f, list_to_disj l)
+	| [] -> True
+
+let impl_list (f : (foltree * foltree) list) : foltree list = 
+	bind_list f (fun k -> Implication(fst k, snd k))
+
+
+
 
 (* Utilities: Printing AST *)
 let print_type (t : data_type) =
@@ -111,40 +208,40 @@ let print_type (t : data_type) =
 	| Inta d -> "Z("^(string_of_int d)^")"
 
 
-let rec print_aterm (at : aterm)=
+let rec print_atermtree (at : atermtree)=
 	match at with 
 	|	AZConst z -> (string_of_int z)
 	|   ARConst z -> (string_of_int z)^".0"
-	|   Prec z -> ("2^"^ (print_aterm z))
-	|   APlus (t1, t2) -> "("^(print_aterm t1)^" + "^(print_aterm t2)^")"
-	|   AMult (t1, t2) -> "("^(print_aterm t1)^" * "^(print_aterm t2)^")"
-	|   ADiv (t) -> "/ "^(print_aterm t)
-	|   AMinus (t) -> "- "^(print_aterm t)
+	|   Prec z -> ("2^"^ (print_atermtree z))
+	|   APlus (t1, t2) -> "("^(print_atermtree t1)^" + "^(print_atermtree t2)^")"
+	|   AMult (t1, t2) -> "("^(print_atermtree t1)^" * "^(print_atermtree t2)^")"
+	|   ADiv (t) -> "/ "^(print_atermtree t)
+	|   AMinus (t) -> "- "^(print_atermtree t)
 	|   AVariable s -> s
-	|   AApplication (s, l) -> s^"("^(print_aterm_list l)^")"
-	|   AProjection (s, i) -> (print_aterm s)^"["^(print_aterm i)^"]" 
-	|   ASub (s, t, e) -> (print_aterm s)^"["^(print_aterm t)^"=>"^(print_aterm e)^"]"
+	|   AApplication (s, l) -> s^"("^(print_atermtree_list l)^")"
+	|   AProjection (s, i) -> (print_atermtree s)^"["^(print_atermtree i)^"]" 
+	|   ASub (s, t, e) -> (print_atermtree s)^"["^(print_atermtree t)^"=>"^(print_atermtree e)^"]"
 	|   AInput -> "@"
 
-and print_aterm_list (al : aterm list) =
+and print_atermtree_list (al : atermtree list) =
 	match al with
-	| v :: [] -> (print_aterm v)
-	| v :: l -> (print_aterm v)^", "^(print_aterm_list l)
+	| v :: [] -> (print_atermtree v)
+	| v :: l -> (print_atermtree v)^", "^(print_atermtree_list l)
 	| _ -> ""
 
 let rec print_foltree (f : foltree) = 
 	match f with
 	|	True -> "True"
 	|   False -> "False"
-	|   Identity (t1, t2) -> "("^(print_aterm t1)^"="^(print_aterm t2)^")"
+	|   Identity (t1, t2) -> "("^(print_atermtree t1)^"="^(print_atermtree t2)^")"
 	|   Neg (f1) -> "(!"^(print_foltree f1)^")"
-	|   Greater (t1, t2) -> "("^(print_aterm t1)^">"^(print_aterm t2)^")"
+	|   Greater (t1, t2) -> "("^(print_atermtree t1)^">"^(print_atermtree t2)^")"
 	|   Implication (f1, f2) -> "("^(print_foltree f1)^" \\to "^(print_foltree f2)^")"
 	|   UniversialQ (s, dt, f) -> "(\\forall "^s^" : "^(print_type dt)^", "^(print_foltree f)^")"
 	|   ExistensialQ (s, dt, f) -> "(\\exists "^s^" : "^(print_type dt)^", "^(print_foltree f)^")"
 	|   Disjunction (f1, f2) -> "("^(print_foltree f1)^" \\lor "^(print_foltree f2)^")"
 	|   Conjunction (f1, f2) -> "("^(print_foltree f1)^" \\land "^(print_foltree f2)^")"
-	|   Predicate (s, tl) -> s^"("^(print_aterm_list tl)^")"
+	|   Predicate (s, tl) -> s^"("^(print_atermtree_list tl)^")"
 
 let rec print_foltree_list (f : foltree list) = 
 	match f with

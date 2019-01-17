@@ -11,6 +11,7 @@
 	open Reduction
 	open Exporter
 	open Log
+	open Loader
 	open Errors
 %}
 %token EOF

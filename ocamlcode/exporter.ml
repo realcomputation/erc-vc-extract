@@ -5,7 +5,10 @@ open Logic
 open Log
 open Initialcoq
 open Errors
+open Loader
 exception ExportErr of string
+
+
 
 (**
 let ifun : (string, data_type list) Hashtbl.t = Hashtbl.create 10
@@ -38,43 +41,43 @@ let rec print_tv_list (tv : typed_variable list) =
 	| [] -> ""
 
 
-let rec dump_aterm (at : aterm) : string = 
+let rec dump_atermtree (at : atermtree) : string = 
 	match at with 
 	|	AZConst z -> (string_of_int z)
 	|   ARConst z -> (string_of_int z)
-	|   Prec z -> ("(prec "^ (dump_aterm z))^")"
-	|   APlus (t1, t2) -> "("^(dump_aterm t1)^" + "^(dump_aterm t2)^")"
-	|   AMult (t1, t2) -> "("^(dump_aterm t1)^" * "^(dump_aterm t2)^")"
-	|   ADiv (t) -> "/ "^(dump_aterm t)
-	|   AMinus (t) -> "- "^(dump_aterm t)
+	|   Prec z -> ("(prec "^ (dump_atermtree z))^")"
+	|   APlus (t1, t2) -> "("^(dump_atermtree t1)^" + "^(dump_atermtree t2)^")"
+	|   AMult (t1, t2) -> "("^(dump_atermtree t1)^" * "^(dump_atermtree t2)^")"
+	|   ADiv (t) -> "/ "^(dump_atermtree t)
+	|   AMinus (t) -> "- "^(dump_atermtree t)
 	|   AVariable s -> s
-	|   AApplication (s, l) -> "("^s^" "^(dump_aterm_list l)^" )"
+	|   AApplication (s, l) -> "("^s^" "^(dump_atermtree_list l)^" )"
 
-	|   AProjection (s, i) -> (dump_aterm s)^"["^(dump_aterm i)^"]" 
-	|   ASub (s, t, e) -> (dump_aterm s)^"["^(dump_aterm t)^"=>"^(dump_aterm e)^"]"
+	|   AProjection (s, i) -> (dump_atermtree s)^"["^(dump_atermtree i)^"]" 
+	|   ASub (s, t, e) -> (dump_atermtree s)^"["^(dump_atermtree t)^"=>"^(dump_atermtree e)^"]"
 	|   AInput -> raise (ExportErr "predicate cannot be parsed")
 
-and dump_aterm_list (al : aterm list) =
+and dump_atermtree_list (al : atermtree list) =
 	match al with
-	| v :: [] -> (dump_aterm v)
-	| v :: l -> (dump_aterm v)^" "^(dump_aterm_list l)
+	| v :: [] -> (dump_atermtree v)
+	| v :: l -> (dump_atermtree v)^" "^(dump_atermtree_list l)
 	| _ -> ""
 
 let rec dump_foltree (f : foltree) (ctx : (string, data_type) Hashtbl.t)= 
 	match f with
 	|	True -> "True"
 	|   False -> "False"
-	|   Identity (t1, t2) -> let t = aterm_type t1 ctx in
+	|   Identity (t1, t2) -> let t = atermtree_type t1 ctx in
 								(match t with
 								| Some t ->
-								 "("^(dump_aterm t1)^"="^(dump_aterm t2)^")%"^(dump_type t)
+								 "("^(dump_atermtree t1)^"="^(dump_atermtree t2)^")%"^(dump_type t)
 								| None -> raise (ExportErr ("export]ill typed"^(print_foltree f)^"\nin"^(print_context ctx)))
 								)
 	|   Neg (f1) -> "~("^(dump_foltree f1 ctx)^")"
-	|   Greater (t1, t2) -> let t = aterm_type t1 ctx in 
+	|   Greater (t1, t2) -> let t = atermtree_type t1 ctx in 
 							(match t with
 							| Some t ->
-							"("^(dump_aterm t1)^">"^(dump_aterm t2)^")%"^(dump_type t )
+							"("^(dump_atermtree t1)^">"^(dump_atermtree t2)^")%"^(dump_type t )
 							| None -> raise (ExportErr ("export]ill typed"^(print_foltree f)))
 							)
 	|   Implication (f1, f2) -> "("^(dump_foltree f1 ctx)^" -> "^(dump_foltree f2 ctx)^")"
@@ -82,7 +85,7 @@ let rec dump_foltree (f : foltree) (ctx : (string, data_type) Hashtbl.t)=
 	|   ExistensialQ (s, dt, f) -> let nc = Hashtbl.copy ctx in Hashtbl.add nc s dt; "exists "^s^" : "^(dump_type dt)^", ("^(dump_foltree f nc)^")"
 	|   Disjunction (f1, f2) -> "("^(dump_foltree f1 ctx)^" \\/ "^(dump_foltree f2 ctx)^")"
 	|   Conjunction (f1, f2) -> "("^(dump_foltree f1 ctx)^" /\\ "^(dump_foltree f2 ctx)^")"
-	|   Predicate (s, tl) -> "("^s^" "^(dump_aterm_list tl)^" )"
+	|   Predicate (s, tl) -> "("^s^" "^(dump_atermtree_list tl)^" )"
 
 
 let rec dump_datatype_list_dom (ds : data_type list) : string = 
