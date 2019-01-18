@@ -1,12 +1,11 @@
 {
 	open Parser
 	open Lexing
-	open Context
-	
+	open Utilities
 	(* updating position *)
 	let pos lexbuf = (lexeme_start lexbuf, lexeme_end lexbuf)
 	let new_line2 pos = { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum; }
-	let new_line lexbuf = lexbuf.lex_curr_p <- new_line2 lexbuf.lex_curr_p
+	let new_line lexbuf = curline := !curline + 1; lexbuf.lex_curr_p <- new_line2 lexbuf.lex_curr_p
 }
 
 let digit = ['0'-'9']

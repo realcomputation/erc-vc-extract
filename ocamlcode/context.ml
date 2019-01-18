@@ -1,10 +1,10 @@
 open Hashtbl
 open Ast
+open Utilities
 
 
 (* index used to introduce a fresh variables *)
 let freshvar : int ref =  ref 0
-
 let fresh_of_type a =
 	let v6 = ("_v"^(string_of_int (!freshvar +1))) in
 	(freshvar := !freshvar+1);
@@ -14,7 +14,7 @@ let rec typed_list (d : data_type list) (i : int) : typed_variable list =
 	match d with
 	| d :: l -> (d, "@"^(string_of_int i)) :: (typed_list l (i+1))
 	| _  -> []
-	
+
 (* index used to introduce a fresh theorem id for Coq export *)
 let theoremid : int ref =  ref 0
 
@@ -36,6 +36,9 @@ let sfunfol : (string, (foltree * foltree) list) Hashtbl.t = Hashtbl.create 10
 let pvariables : (string, bool) Hashtbl.t = Hashtbl.create 10
 let lvariables : (string, bool) Hashtbl.t = Hashtbl.create 10
 
+
+
+
 (* predefined predicates *)
 let pdefi : (string, (data_type list) * foltree) Hashtbl.t = Hashtbl.create 10
 
@@ -49,5 +52,29 @@ let ctx_mem (ctx : (string, data_type) Hashtbl.t) (s : string) : bool =
 
 
 (* return type stored here...? *)
-let return_type_f : data_type ref = ref Int
+let parsed_precond : foltree ref = ref True
+let parsed_postcond : foltree ref = ref True
+let parsed_stmt : statementtree ref = ref Empty
+let parsed_return : termtree ref = ref (Const 0)
+let parsed_input : typed_variable list ref = ref []
+let parsed_return_type : data_type ref = ref Int
+let parsed_final_ctx : (string, data_type) Hashtbl.t ref = ref (Hashtbl.create 1) 
+
+
+let fold_t h =  Hashtbl.fold (fun k v acc -> (k, v) :: acc) h []
+
+let rec print_v_t ( v : (string* data_type) list) =
+	match v with
+	| (s, t) :: l -> s^" : "^(print_type t)^"\n"^(print_v_t l)
+	| [] -> ""
+
+let rec print_f_s (v : (string* ((data_type list) * data_type)) list) : string =
+	match v with
+	| (s, (d, c)) :: l -> s^" : "^(unfold_list (bind_list d (fun l -> (print_type l)^"*")) "" (fun a b -> a^b))^ " -> "^(print_type c)^"\n"^(print_f_s l)
+	| [] -> ""
+
+
+let print_context ( ctx : (string, data_type) Hashtbl.t) : string =
+	(print_v_t (fold_t ctx))^"\n\n"^(print_f_s (fold_t sfun))^"\n\n"^(print_f_s (fold_t mfun))
+
 

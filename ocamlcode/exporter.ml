@@ -6,7 +6,6 @@ open Log
 open Initialcoq
 open Errors
 open Loader
-exception ExportErr of string
 
 
 
@@ -19,21 +18,12 @@ let theories : foltree list ref =  ref []
 let pdefi : (string, (data_type list) * foltree) Hashtbl.t = Hashtbl.create 10
 **)
 
-let fold_t h =  Hashtbl.fold (fun k v acc -> (k, v) :: acc) h []
-
-let rec print_v_t ( v : (string* data_type) list) =
-	match v with
-	| (s, t) :: l -> s^" : "^(print_type t)^"\n"^(print_v_t l)
-	| [] -> ""
-
-let print_context ( ctx : (string, data_type) Hashtbl.t) : string =
-	print_v_t (fold_t ctx)
 
 let dump_type (a : data_type) : string = 
 	match a with 
 	| Real -> "R"
 	| Int -> "Z"
-	| _ -> raise (ExportErr "not valid datatype")
+	| _ -> raise (EngineErr "not valid datatype")
 
 let rec print_tv_list (tv : typed_variable list) = 
 	match tv with
@@ -55,7 +45,7 @@ let rec dump_atermtree (at : atermtree) : string =
 
 	|   AProjection (s, i) -> (dump_atermtree s)^"["^(dump_atermtree i)^"]" 
 	|   ASub (s, t, e) -> (dump_atermtree s)^"["^(dump_atermtree t)^"=>"^(dump_atermtree e)^"]"
-	|   AInput -> raise (ExportErr "predicate cannot be parsed")
+	|   AInput -> raise (EngineErr "predicate cannot be parsed")
 
 and dump_atermtree_list (al : atermtree list) =
 	match al with
@@ -71,14 +61,14 @@ let rec dump_foltree (f : foltree) (ctx : (string, data_type) Hashtbl.t)=
 								(match t with
 								| Some t ->
 								 "("^(dump_atermtree t1)^"="^(dump_atermtree t2)^")%"^(dump_type t)
-								| None -> raise (ExportErr ("export]ill typed"^(print_foltree f)^"\nin"^(print_context ctx)))
+								| None -> raise (EngineErr ("export]ill typed"^(print_foltree f)^"\nin"^(print_context ctx)))
 								)
 	|   Neg (f1) -> "~("^(dump_foltree f1 ctx)^")"
 	|   Greater (t1, t2) -> let t = atermtree_type t1 ctx in 
 							(match t with
 							| Some t ->
 							"("^(dump_atermtree t1)^">"^(dump_atermtree t2)^")%"^(dump_type t )
-							| None -> raise (ExportErr ("export]ill typed"^(print_foltree f)))
+							| None -> raise (EngineErr ("export]ill typed"^(print_foltree f)))
 							)
 	|   Implication (f1, f2) -> "("^(dump_foltree f1 ctx)^" -> "^(dump_foltree f2 ctx)^")"
 	|   UniversialQ (s, dt, f) -> let nc = Hashtbl.copy ctx in Hashtbl.add nc s dt; "forall "^s^" : "^(dump_type dt)^", ("^(dump_foltree f nc)^")"
@@ -93,12 +83,12 @@ let rec dump_datatype_list_dom (ds : data_type list) : string =
 	| d :: [] -> (match d with
 				| Real -> "R  "
 				| Int -> "Z  "
-				| _ -> raise (ExportErr "type of domain can only be either R or Z")
+				| _ -> raise (EngineErr "type of domain can only be either R or Z")
 				)
 	| d :: s -> (match d with
 				| Real -> "R -> "
 				| Int -> "Z -> "
-				| _ -> raise (ExportErr "type of domain can only be either R or Z")
+				| _ -> raise (EngineErr "type of domain can only be either R or Z")
 				)
 	| _ -> ""
 
@@ -136,7 +126,7 @@ let rec dump_pdefi_list (f : (string * (data_type list * foltree)) list) =
 		| Some ctx ->
 			"Definition "^s^" "^(dump_typed_vars_list tv)^" := "^(dump_foltree (dump_pdefi_fedin f tv 1) ctx)^".\n\n"
 			^(dump_pdefi_list l)
-		| _ -> raise (ExportErr "cannot load"))
+		| _ -> raise (EngineErr "cannot load"))
 	| _ -> ""
 
 let dump_pdefi (): string = 
@@ -192,13 +182,13 @@ let dump_precondition (p : foltree) (tv : typed_variable list) : string =
 	let nc = Hashtbl.copy empty_ctx in
 	match load_input_ctx nc tv with
 	| Some ctx -> dump_foltree p ctx
-	| None -> raise ( TypingError("","dumping precondition", empty_ctx))
+	| None -> raise ( EngineErr("dumping precondition"))
 
 let dump_postcondition (p : foltree) (tv : typed_variable list) (rt : data_type) : string = 
 	let nc = Hashtbl.copy empty_ctx in
 	match load_input_ctx nc tv with
 	| Some ctx ->  Hashtbl.add nc "@res" rt; dump_foltree p nc
-	| None -> raise ( PlainError "cannot load inputs")
+	| None -> raise ( EngineErr "cannot load inputs")
 
 
 let dump_init () : string = 
@@ -206,12 +196,18 @@ let dump_init () : string =
 	(fmatter)^
 	"\nRequire Import Reals.\nRequire Import ZArith.\nRequire Import "^(!filename_wo_dir)^"_prec.\n"
 
-let dump_coq (tv : typed_variable list) (s : statementtree) (t : termtree) (p : foltree) (q : foltree) (f : foltree list) : unit =
+let dump_coq (f : foltree list) : unit =
+	let tv = !parsed_input in
+	let s = !parsed_stmt in
+	let t = !parsed_return in
+	let p = !parsed_precond in
+	let q = !parsed_postcond in
+
 	let oc = open_out ((!coqfilename)^".v") in
 	Printf.fprintf oc "%s\n"
 	((dump_init())^
 	("\n\n\n(* Proving correctness of the following program:\n *\n * Precondition: "^(dump_precondition p tv)^"\n *\n * Input: "^(print_tv_list tv)^"\n *\n *"^
-	(print_stree_ind_comment s (S O))^"\n *\n * Return "^(print_ttree t)^"\n *\n * Postcondition: "^(dump_postcondition q tv (!return_type_f))^
+	(print_stree_ind_comment s (S O))^"\n *\n * Return "^(print_ttree t)^"\n *\n * Postcondition: "^(dump_postcondition q tv (!parsed_return_type))^
 	"*)\n\n\n")^
 	(dump_sfun())^
 	(dump_pdefi())^

@@ -12,6 +12,9 @@ type typed_variable = data_type * string
 
 type infilepos = { infile_line : int }
 
+let print_infile (t : infilepos) : string =
+	(string_of_int (t.infile_line ))
+
 (* pre - ast with in-file position tagged. *)
 type aterm_pre =
 		AZConst_pre of infilepos * int
@@ -39,9 +42,35 @@ type fol_pre =
 	|   Disjunction_pre of infilepos * fol_pre * fol_pre
 	|   Conjunction_pre of infilepos * fol_pre * fol_pre
 	|   Predicate_pre of infilepos * string * (aterm_pre list) 
+(* that does not appear in ast *)
+	|   UniqQ_pre of infilepos * string * data_type * fol_pre 
+	|   LT_pre of infilepos * aterm_pre * aterm_pre
+	|   GE_pre of infilepos * aterm_pre * aterm_pre
+	|   LE_pre of infilepos * aterm_pre * aterm_pre
+	|   GTGT_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   GTGE_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   GEGT_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   GEGE_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   LTLT_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   LTLE_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   LELT_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+	|   LELE_pre of infilepos * aterm_pre * aterm_pre * aterm_pre
+
+(* 	| lterm GT EQ lterm { Disjunction (Greater($1, $4), Identity($1,$4)) }
+	| lterm LT EQ lterm { Disjunction (Greater($4, $1), Identity($1,$4)) }
+	| lterm LT lterm LT lterm { Conjunction(Greater($5, $3), Greater($3, $1)) }
+	| lterm LT EQ lterm LT lterm { Conjunction(Disjunction(Greater($4, $1), Identity($4,$1)), Greater($6, $4)) }
+	| lterm LT lterm LT EQ lterm { Conjunction(Greater($3, $1), Disjunction(Greater($6, $3), Identity($6, $3))) }
+	| lterm LT EQ lterm LT EQ lterm { Conjunction(Disjunction(Greater ($4, $1), Identity($4,$1)), Disjunction(Greater($7,$4), Identity($7,$4)))}
+	| lterm GT lterm GT lterm { Conjunction(Greater($1,$3), Greater($3, $5)) } 
+	| lterm GT EQ lterm GT lterm { Conjunction(Disjunction(Greater($1,$4),Identity($1,$4)), Greater($4,$6)) }
+	| lterm GT lterm GT EQ lterm { Conjunction(Greater($1,$3), Disjunction(Greater($3,$6), Identity($3,$6))) }
+	| lterm GT EQ lterm GT EQ lterm { Conjunction(Disjunction(Greater($1,$4), Identity($1,$4)), Disjunction(Greater($4,$7), Identity($4,$7))) }
+ *)
+
 
 type term_pre = 
-		Variable of infilepos * string
+		Variable_pre of infilepos * string
 	|   Const_pre of infilepos * int
 	|   RConst_pre of infilepos * int
 	(*	Arithmetic operators *)
@@ -202,10 +231,78 @@ let impl_list (f : (foltree * foltree) list) : foltree list =
 (* Utilities: Printing AST *)
 let print_type (t : data_type) =
 	match t with
-	| Real -> "\\mathbb{R}"
-	| Int -> "\\mathbb{Z}"
+	| Real -> "R"
+	| Int -> "Z"
 	| Reala d -> "R("^(string_of_int d)^")"
 	| Inta d -> "Z("^(string_of_int d)^")"
+
+let rec print_aterm_pre (at : aterm_pre) =
+	match at with 
+	|	AZConst_pre (p,z)  -> (p, (string_of_int z))
+	|   ARConst_pre (p,z)  -> (p, (string_of_int z))
+	|   Prec_pre (p,z)  -> (p, ("2^"^ (snd (print_aterm_pre z))))
+	|   APlus_pre (p, t1, t2) -> (p, "("^(snd (print_aterm_pre t1))^" + "^(snd (print_aterm_pre t2))^")")
+	|   AMult_pre (p, t1, t2) -> (p, "("^(snd (print_aterm_pre t1))^" * "^(snd (print_aterm_pre t2))^")")
+	|   ADiv_pre (p, t) -> (p, "/ "^(snd (print_aterm_pre t)))
+	|   AMinus_pre (p, t) -> (p, "- "^(snd (print_aterm_pre t)))
+	|   AVariable_pre (p, s)  -> (p, s)
+	|   AApplication_pre (p, s, l) -> (p, s^"("^(unfold_list (bind_list l (fun l -> snd (print_aterm_pre l))) "" (fun a b -> a^" "^b))^")")
+	|   AProjection_pre (p, s, i) -> (p, (snd (print_aterm_pre s))^"["^(snd (print_aterm_pre i))^"]" )
+	|   ASub_pre (p, s, t, e) -> (p, (snd (print_aterm_pre s))^"["^(snd (print_aterm_pre t))^"=>"^(snd (print_aterm_pre e))^"]")
+	|   AInput_pre p -> (p, "@")
+
+let rec print_fol_pre (f : fol_pre) = 
+	match f with
+	|	True_pre p -> (p, "True")
+	|   False_pre p -> (p, "False")
+	|   Identity_pre (p, t1, t2) -> (p, "("^(snd (print_aterm_pre t1))^"="^(snd (print_aterm_pre t2))^")")
+	|   Neg_pre (p, f1) -> (p, "(!"^(snd (print_fol_pre f1))^")")
+	|   Greater_pre (p, t1, t2) -> (p, "("^(snd (print_aterm_pre t1))^">"^(snd (print_aterm_pre t2))^")")
+	|   Implication_pre (p, f1, f2) -> (p, "("^(snd (print_fol_pre f1))^" \\to "^(snd (print_fol_pre f2))^")")
+	|   UniversialQ_pre (p, s, dt, f) -> (p, "(\\forall "^s^" : "^(print_type dt)^", "^(snd (print_fol_pre f))^")")
+	|   ExistensialQ_pre (p, s, dt, f) -> (p, "(\\exists "^s^" : "^(print_type dt)^", "^(snd (print_fol_pre f))^")")
+	|   Disjunction_pre (p, f1, f2) -> (p, "("^(snd (print_fol_pre f1))^" \\lor "^(snd (print_fol_pre f2))^")")
+	|   Conjunction_pre (p, f1, f2) -> (p, "("^(snd (print_fol_pre f1))^" \\land "^(snd (print_fol_pre f2))^")")
+	|   Predicate_pre (p, s, tl) -> (p, s^"("^(unfold_list (bind_list tl (fun l -> snd (print_aterm_pre l))) "" (fun a b -> a^" "^b))^")")
+	|   _ -> ({infile_line=1}, "cannot print")
+
+let rec print_term_pre (tterm : term_pre) =
+	match tterm with
+	|	Variable_pre (p, z)  -> (p, z)
+	|   Const_pre (p, z)  -> (p, (string_of_int z))
+	|   RConst_pre (p, z)  -> (p, (string_of_int z))
+(*	arithmetic operations... maybe it will be better to have these categorized *)
+	|   Mult_pre (p, t1, t2) -> (p, (snd (print_term_pre t1))^" * "^(snd (print_term_pre t2)))
+	|   Plus_pre (p, t1, t2) -> (p, (snd (print_term_pre t1))^" + "^(snd (print_term_pre t2)))
+	|   Minus_pre (p, t)  -> (p, "-"^(snd (print_term_pre t)))
+	|   Div_pre (p, t)  -> (p, "/"^(snd (print_term_pre t)))
+(*	Boolean related operations *)	
+	|   Gt_pre (p, t1, t2) -> (p, (snd (print_term_pre t1)) ^">"^(snd (print_term_pre t2)))
+	|   Eq_pre (p, t1, t2) -> (p, (snd (print_term_pre t1)) ^"="^(snd (print_term_pre t2)))
+	|   Neg_pre (p, t) -> (p, (snd (print_term_pre t)))
+	|   And_pre (p, t1, t2) -> (p, (snd (print_term_pre t1))^" && "^(snd (print_term_pre t2)))
+	|   Or_pre (p, t1, t2) -> (p, (snd (print_term_pre t1)) ^"||"^ (snd (print_term_pre t2)))
+(*	Primitive functions *)
+	|   Select_pre (p, tl) -> (p, "Choose("^(unfold_list (bind_list tl (fun l -> snd (print_term_pre l))) "" (fun a b -> a^" "^b))^")")
+	|   Iota_pre (p, t) -> (p, "iota("^(snd (print_term_pre t))^")")
+	|   Max_pre (p, t1, t2) -> (p, "max("^(snd (print_term_pre t1))^", "^(snd (print_term_pre t2))^")")
+	|   Inlinecond_pre (p, t1, t2, t3) -> (p, (snd (print_term_pre t1))^"?"^(snd (print_term_pre t2))^":"^(snd (print_term_pre t3)))
+(*	ETC *)
+	|   Access_pre (p, s, t) -> (p, (s)^"["^(snd (print_term_pre t))^"]")
+	|   Application_pre (p, s, t) -> (p, s^"("^(unfold_list (bind_list t (fun l -> snd (print_term_pre l))) "" (fun a b -> a^" "^b))^")")
+	|   Test_pre (p, z) -> (p, "test("^(snd (print_term_pre z))^")")
+
+
+let rec print_statement_pre (s : statement_pre) =
+	match s with
+	| Empty_pre p -> (p, "empty")
+	| Sequence_pre (p, s1, s2) -> (p, "("^(snd (print_statement_pre s1))^";"^(snd (print_statement_pre s2))^")")
+	| Newvariable_pre (p, v, t) -> (p, "new var "^v^" := "^(snd (print_term_pre t)))
+	| ArrayAssign_pre (p, s, t, e) -> (p, ("assign ")^s^"["^(snd (print_term_pre t))^"] := "^(snd (print_term_pre e)))
+	| Assignment_pre (p, v, t) -> (p, "assign "^v^" := "^(snd (print_term_pre t)))
+	| Conditional_pre (p, b, s1, s2) -> (p, "if("^(snd (print_term_pre b))^") then "^(snd (print_statement_pre s1))^" else "^(snd (print_statement_pre s2)))
+	| Whileloop_pre (p, b, s, i , v) -> (p, "while "^(snd (print_term_pre b))^" do "^(snd (print_statement_pre s)))
+
 
 
 let rec print_atermtree (at : atermtree)=

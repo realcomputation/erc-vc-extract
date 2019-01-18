@@ -367,8 +367,8 @@ let rec impl_reduction (f : foltree) : foltree=
 	| Neg (f) -> Neg(impl_reduction f)
 	| Implication (a, b) -> Disjunction(Neg (impl_reduction a), impl_reduction b)
 
-	| UniversialQ _ -> raise (UnQuant "unexpected quantifier")
-	| ExistensialQ _ -> raise (UnQuant "unexpected quantifier")
+	| UniversialQ _ -> raise (EngineErr "")
+	| ExistensialQ _ -> raise (EngineErr "")
 
 	| Disjunction (a, b) -> Disjunction(impl_reduction a, impl_reduction b)
 	| Conjunction (a, b) -> Conjunction(impl_reduction a, impl_reduction b)
@@ -384,9 +384,9 @@ let rec neg_reduction (f : foltree) =
 		| Conjunction(a, b) -> Disjunction(neg_reduction (Neg a), neg_reduction (Neg b))
 		| Disjunction(a, b) -> Conjunction(neg_reduction (Neg a), neg_reduction (Neg b))
 
-		| UniversialQ _ -> raise (UnQuant "unexpected quantifier")
-		| ExistensialQ _ -> raise (UnQuant "unexpected quantifier")
-		| Implication _ -> raise (UnQuant "unexpected quantifier")
+		| UniversialQ _ -> raise (EngineErr "")
+		| ExistensialQ _ -> raise (EngineErr "")
+		| Implication _ -> raise (EngineErr "")
 
 		| True -> False
 		| False -> True
@@ -395,9 +395,9 @@ let rec neg_reduction (f : foltree) =
 	| Conjunction(a, b) -> Conjunction(neg_reduction a, neg_reduction b)
 	| Disjunction(a, b) -> Disjunction(neg_reduction a, neg_reduction b)
 
-	| UniversialQ _ -> raise (UnQuant "unexpected quantifier")
-	| ExistensialQ _ -> raise (UnQuant "unexpected quantifier")
-	| Implication _ -> raise (UnQuant "unexpected quantifier")
+	| UniversialQ _ -> raise (EngineErr "")
+	| ExistensialQ _ -> raise (EngineErr "")
+	| Implication _ -> raise (EngineErr "")
 
 	| _ -> f
 
@@ -409,14 +409,14 @@ let rec neg_reduction_arith (f : foltree ) =
 		match l with
 		| Identity(a, b) -> Disjunction(Greater(a, b), Greater(b, a))
 		| Greater (a, b) -> Disjunction(Greater(b, a), Identity(a, b))
-		| _ -> f (* raise (UnQuant ("literals expected: \n"^(print_foltree f))) *)
+		| _ -> f 
 	)
 	| Conjunction(a, b) -> Conjunction(neg_reduction_arith a, neg_reduction_arith b)
 	| Disjunction(a, b) -> Disjunction(neg_reduction_arith a, neg_reduction_arith b)
 
-	| UniversialQ _ -> raise (UnQuant "unexpected quantifier")
-	| ExistensialQ _ -> raise (UnQuant "unexpected quantifier")
-	| Implication _ -> raise (UnQuant "unexpected quantifier")
+	| UniversialQ _ -> raise (EngineErr "")
+	| ExistensialQ _ -> raise (EngineErr "")
+	| Implication _ -> raise (EngineErr "")
 
 	| _ -> f
 
@@ -433,9 +433,9 @@ let rec dnf_distribute (f : foltree) =
 		| Disjunction(l,r) , _ ->  Disjunction (dnf_distribute (Conjunction(l, y)), dnf_distribute (Conjunction (r, y)))
 		| _, _ -> Conjunction(x,y))
 
-	| UniversialQ _ -> raise (UnQuant "unexpected quantifier")
-	| ExistensialQ _ -> raise (UnQuant "unexpected quantifier")
-	| Implication _ -> raise (UnQuant "unexpected quantifier")
+	| UniversialQ _ -> raise (EngineErr "")
+	| ExistensialQ _ -> raise (EngineErr "")
+	| Implication _ -> raise (EngineErr "")
 	| _ -> f
 
 (* test syntactic equality of f1 and f2 *)

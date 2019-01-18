@@ -1,6 +1,6 @@
 erc-vc-extract: lexer.cmo ast.cmo context.cmo typing.cmo utilities.cmo loader.cmo logic.cmo vccalc.cmo initialcoq.cmo exporter.cmo parser.cmo main.cmo 
-	ocamlc -o erc-vc-extract str.cma lexer.cmo utilities.cmo ast.cmo context.cmo errors.cmo typing.cmo logic.cmo loader.cmo  canonical.cmo reduction.cmo log.cmo initialcoq.cmo exporter.cmo vccalc.cmo parser.cmo main.cmo 
-errors.cmo: errors.ml ast.ml context.ml
+	ocamlc -o erc-vc-extract str.cma  utilities.cmo ast.cmo logic.cmo context.cmo errors.cmo typing.cmo loader.cmo  canonical.cmo reduction.cmo log.cmo initialcoq.cmo exporter.cmo vccalc.cmo lexer.cmo parser.cmo main.cmo 
+errors.cmo: errors.ml ast.cmo context.cmo
 	ocamlc -c errors.ml
 vccalc.cmo: vccalc.ml logic.cmo typing.cmo reduction.cmo canonical.cmo exporter.cmo log.cmo loader.cmo
 	ocamlc -c vccalc.ml
@@ -18,7 +18,7 @@ logic.cmo: logic.ml ast.cmo errors.cmo
 	ocamlc -c logic.ml
 loader.cmo: loader.ml typing.cmo errors.cmo logic.cmo
 	ocamlc -c loader.ml
-typing.cmo: typing.ml context.cmo errors.cmo
+typing.cmo: typing.ml context.cmo errors.cmo logic.cmo
 	ocamlc -c typing.ml
 context.cmo: context.ml ast.cmo
 	ocamlc -c context.ml

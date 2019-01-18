@@ -13,6 +13,11 @@
 	open Log
 	open Loader
 	open Errors
+	open Utilities
+	let line_pos() = 
+		{ infile_line = !curline}
+
+
 %}
 %token EOF
 
@@ -89,12 +94,12 @@
 prog: 
 
     | load_block CONTEXT LPAREN typed_variable_list RPAREN print_sem_list EOF { 
-    	if $1 then 
+   		$1;
 		(let ctx : (string, data_type) Hashtbl.t = Hashtbl.create 10 in
     	(match load_input_ctx ctx $4 with
     	| Some ctx -> 
     		(print_endline (print_sem_list $6 ctx))
-    	| _ -> print_endline "cannot load context")) else (print_endline "cannot load assumptions")
+    	| _ -> print_endline "cannot load context"))
 
     }
 
@@ -108,30 +113,26 @@ prog:
 
     | load_block 
 	  PRECONDITION fol POSTCONDITION fol INPUT LPAREN typed_variable_list RPAREN statement RETURN term EOF 
-	{
-
-	  	if $1 
-	  	then 
-	  		(
-		  		let fol_list = wp_run $3 $5 $8 $10 $12 in
-				let simpl = simplify_t (simplify_i (reduce_quantifiers fol_list)) in
-				let clist = split_conjunctions simpl in
-				let more_reduced = reduce_quantifiers_list clist in 
-				dump_coq $8 $10 $12 $3 $5 more_reduced;
-				dump_log();
-				print_endline ("\n\n"^(!coqfilename)^".v and "^(!coqfilename)^"_log.txt are created\n\n")
-			)
-		else 
-			print_endline "assumptions cannot be loaded"
+	{ 
+		$1;
+  		load_program $3 $5 $8 $10 $12;
+  		let vc = vc_extract() in
+		let simpl = simplify_t (simplify_i (reduce_quantifiers vc)) in
+		let clist = split_conjunctions simpl in
+		let more_reduced = reduce_quantifiers_list clist in 
+		dump_coq more_reduced;
+		dump_log();
+		print_endline ("\n\n"^(!coqfilename)^".v and "^(!coqfilename)^"_log.txt are created\n\n")
 	}
 	
 	| PRECONDITION fol POSTCONDITION fol INPUT LPAREN typed_variable_list RPAREN statement RETURN term EOF {
 
-		  		let fol_list = wp_run $2 $4 $7 $9 $11 in
-				let simpl = simplify_t (simplify_i (reduce_quantifiers fol_list)) in
+		  		load_program $2 $4 $7 $9 $11;
+		  		let vc = vc_extract() in
+				let simpl = simplify_t (simplify_i (reduce_quantifiers vc)) in
 				let clist = split_conjunctions simpl in
 				let more_reduced = reduce_quantifiers_list clist in 
-				dump_coq $7 $9 $11 $2 $4 (more_reduced);
+				dump_coq more_reduced;
 				dump_log();
 				print_endline ("\n\n"^(!coqfilename)^".v and "^(!coqfilename)^"_log.txt are created\n\n")
 
@@ -143,25 +144,18 @@ print_sem_list:
 
 
 load_block:
-	| loading load_block { $1 && $2 }
+	| loading load_block { $1; $2 }
 	| loading { $1 };
 
 loading:
-	| LOAD ID COLON typelist EQ GT LR spec_list { if load_mfun $2 ($4, Real) && load_mfunfol $2 ($4, Real) $8 then true else 
-		raise (LoadFail $2)}
-	| LOAD ID COLON typelist EQ GT LZ spec_list { if load_mfun $2 ($4, Int) && load_mfunfol $2 ($4, Int) $8 then true else 
-		raise (LoadFail $2)}
-	| LOAD ID COLON typelist IMPL LR spec_list { if load_sfun $2 ($4, Real) && load_sfunfol $2 ($4, Real) $7 then true else 
-		raise (LoadFail $2)}
-	| LOAD ID COLON typelist IMPL LZ spec_list { if load_sfun $2 ($4, Int) && load_sfunfol $2 ($4, Int) $7 then true else 
-		raise (LoadFail $2)}
-	| DEFINITION ID COLON typelist IMPL PROP ASSIGN fol { if load_pdefi $2 $4 $8 then true else 
-		raise (LoadFail $2)}
+	| LOAD ID COLON typelist EQ GT LR spec_list { if load_mfun $2 ($4, Real) then load_mfun_spec $2 ($4, Real) $8 else raise (LoadFail $2) }
+	| LOAD ID COLON typelist EQ GT LZ spec_list { if load_mfun $2 ($4, Int) then load_mfun_spec $2 ($4, Int) $8 else raise (LoadFail $2) }
+	| LOAD ID COLON typelist IMPL LR spec_list { if load_sfun $2 ($4, Real) then load_sfun_spec $2 ($4, Real) $7 else raise (LoadFail $2) }
+	| LOAD ID COLON typelist IMPL LZ spec_list { if load_sfun $2 ($4, Int) then load_sfun_spec $2 ($4, Int) $7 else	raise (LoadFail $2) }
+	| DEFINITION ID COLON typelist IMPL PROP ASSIGN fol { load_pdefi $2 $4 $8 }
 
-	| ASSUME COQ DOT { coq_theories := $2 :: !coq_theories; true }
-
-	| ASSUME fol { if load_theories [$2] then true else 
-		raise (LoadFail (print_foltree $2)) };
+	| ASSUME COQ DOT { coq_theories := $2 :: !coq_theories }
+	| ASSUME fol { load_theories [$2] };
 
 spec_list:
 	| spec { [$1] }
@@ -179,12 +173,12 @@ typelist:
 
 /* Programming language */
 statement:
-	| statement SEQ statement { Sequence ($1, $3) }
-	| NEWVAR ID ASSIGN term { Newvariable ($2, $4) }
-	| ID ASSIGN term { Assignment ($1, $3) }
-	| ID LBRACK term RBRACK ASSIGN term { ArrayAssign ($1, $3, $6)}
-	| IF term THEN statement ELSE statement { Conditional ($2, $4, $6) }
-	| INVARIANT fol VARIANT lterm WHILE term DO statement { Whileloop ($6, $8, $2, $4) }
+	| statement SEQ statement { Sequence_pre (line_pos(), $1, $3) }
+	| NEWVAR ID ASSIGN term { Newvariable_pre (line_pos(), $2, $4) }
+	| ID ASSIGN term { Assignment_pre (line_pos(), $1, $3) }
+	| ID LBRACK term RBRACK ASSIGN term { ArrayAssign_pre (line_pos(), $1, $3, $6)}
+	| IF term THEN statement ELSE statement { Conditional_pre (line_pos(), $2, $4, $6) }
+	| INVARIANT fol VARIANT lterm WHILE term DO statement { Whileloop_pre (line_pos(), $6, $8, $2, $4) }
 	| LBLOCK statement LBLOCK { $2 };
 
 term_list:
@@ -192,30 +186,30 @@ term_list:
 	| term COMMA term_list { $1::$3 }
 
 term:
-	| NUM RCONS { RConst $1 }
-	| NUM { Const $1 }
-	| term EQ term { Eq($1, $3) }
-	| term GT term { Gt($1, $3) }
-	| term LT term { Gt($3, $1) }
-	| term PLUS term { Plus ($1, $3) }
-	| MINUS term { Minus $2 }
-	| term MULT term { Mult ($1, $3) }
-	| DIV term { Div $2 }
-	| term MINUS term { Plus($1, Minus $3) }
-	| term DIV term { Mult($1, Div $3) }
-	| MAX LPAREN term COMMA term RPAREN { Max($3, $5) }
-	| TEST LPAREN term RPAREN { Test ($3) }
-	| ID LBRACK term RBRACK { Access ($1, $3) }
-	| ID LPAREN term_list RPAREN { Application($1, $3) }
-	| ID { Variable $1 }
+	| NUM RCONS { RConst_pre (line_pos(), $1) }
+	| NUM { Const_pre (line_pos(), $1) }
+	| term EQ term { Eq_pre(line_pos(), $1, $3) }
+	| term GT term { Gt_pre(line_pos(), $1, $3) }
+	| term LT term { Gt_pre(line_pos(), $3, $1) }
+	| term PLUS term { Plus_pre (line_pos(), $1, $3) }
+	| MINUS term { Minus_pre (line_pos(), $2) }
+	| term MULT term { Mult_pre (line_pos(), $1, $3) }
+	| DIV term { Div_pre (line_pos(), $2) }
+	| term MINUS term { Plus_pre (line_pos(), $1, Minus_pre (line_pos(), $3)) }
+	| term DIV term { Mult_pre (line_pos(), $1, Div_pre (line_pos(), $3)) }
+	| MAX LPAREN term COMMA term RPAREN { Max_pre(line_pos(), $3, $5) }
+	| TEST LPAREN term RPAREN { Test_pre (line_pos(), $3) }
+	| ID LBRACK term RBRACK { Access_pre (line_pos(), $1, $3) }
+	| ID LPAREN term_list RPAREN { Application_pre(line_pos(), $1, $3) }
+	| ID { Variable_pre (line_pos(), $1) }
 
-	| SELECT LPAREN term_list RPAREN { Select($3) }
-	| term AND term { And ($1, $3) }
-	| term OR term { Or ($1, $3) }
-	| NEG term { Neg $2 }
-	| AT term QUEST term COLON term { Inlinecond ($2, $4, $6) } 
+	| SELECT LPAREN term_list RPAREN { Select_pre(line_pos(), $3) }
+	| term AND term { And_pre (line_pos(), $1, $3) }
+	| term OR term { Or_pre (line_pos(), $1, $3) }
+	| NEG term { Neg_pre (line_pos(), $2) }
+	| AT term QUEST term COLON term { Inlinecond_pre (line_pos(), $2, $4, $6) } 
 
-	| IOTA LPAREN term RPAREN { Iota $3 }
+	| IOTA LPAREN term RPAREN { Iota_pre (line_pos(), $3) }
 
 	| LPAREN term RPAREN { $2 };
 
@@ -236,52 +230,47 @@ dtype:
 
 /* assertion language */
 fol:
-	| lterm EQ lterm { Identity ($1, $3) }
-	| lterm GT EQ lterm { Disjunction (Greater($1, $4), Identity($1,$4)) }
-	| lterm GT lterm { Greater ($1, $3) }
-	| lterm LT lterm { Greater ($3, $1)}
-	| lterm LT EQ lterm { Disjunction (Greater($4, $1), Identity($1,$4)) }
+	| lterm EQ lterm { Identity_pre (line_pos(), $1, $3) }
+	| lterm GT lterm { Greater_pre (line_pos(), $1, $3) }
 	
-	| lterm LT lterm LT lterm { Conjunction(Greater($5, $3), Greater($3, $1)) }
-	| lterm LT EQ lterm LT lterm { Conjunction(Disjunction(Greater($4, $1), Identity($4,$1)), Greater($6, $4)) }
-	| lterm LT lterm LT EQ lterm { Conjunction(Greater($3, $1), Disjunction(Greater($6, $3), Identity($6, $3))) }
-	| lterm LT EQ lterm LT EQ lterm { Conjunction(Disjunction(Greater ($4, $1), Identity($4,$1)), Disjunction(Greater($7,$4), Identity($7,$4)))}
-	| lterm GT lterm GT lterm { Conjunction(Greater($1,$3), Greater($3, $5)) } 
-	| lterm GT EQ lterm GT lterm { Conjunction(Disjunction(Greater($1,$4),Identity($1,$4)), Greater($4,$6)) }
-	| lterm GT lterm GT EQ lterm { Conjunction(Greater($1,$3), Disjunction(Greater($3,$6), Identity($3,$6))) }
-	| lterm GT EQ lterm GT EQ lterm { Conjunction(Disjunction(Greater($1,$4), Identity($1,$4)), Disjunction(Greater($4,$7), Identity($4,$7))) }
+	| lterm LT lterm { LT_pre (line_pos(), $1, $3) }
+	| lterm GT EQ lterm { GE_pre (line_pos(), $1, $4) }
+	| lterm LT EQ lterm { LE_pre (line_pos(), $1, $4) }
+	| lterm LT lterm LT lterm { LTLT_pre (line_pos(), $1, $3, $5) }
+	| lterm LT EQ lterm LT lterm { LELT_pre (line_pos(), $1, $4, $6) }
+	| lterm LT lterm LT EQ lterm { LTLE_pre (line_pos(), $1, $3, $6) }
+	| lterm LT EQ lterm LT EQ lterm { LELE_pre (line_pos(), $1, $4, $7) }
+	| lterm GT lterm GT lterm { GTGT_pre (line_pos(), $1, $3, $5) }
+	| lterm GT EQ lterm GT lterm { GEGT_pre (line_pos(), $1, $4, $6) }
+	| lterm GT lterm GT EQ lterm { GTGE_pre (line_pos(), $1, $3, $6) }
+	| lterm GT EQ lterm GT EQ lterm { GEGE_pre (line_pos(), $1, $4, $7) }
 
-	| ID LBRACK lterm_list RBRACK { Predicate($1, $3) }
-	| fol IMPL fol { Implication ($1, $3) }
-	| fol DISJ fol { Disjunction ($1, $3) }
-	| fol CONJ fol { Conjunction ($1, $3) }
-	| FORALL ID COLON ltype COMMA fol { UniversialQ ($2, $4, $6) }
-	| EXISTS ID COLON ltype COMMA fol { ExistensialQ ($2, $4, $6) }
-	| EXISTS EXCLAM ID COLON ltype COMMA fol { 
-		let w = ("_uniq"^($3)^(string_of_int (!freshvar +1))) in
-		(freshvar := !freshvar+1);
-		ExistensialQ ($3, $5, Conjunction($7, 
-			UniversialQ(w, $5, Implication(fol_replace $7 $3 (AVariable w), Identity (AVariable $3, AVariable w)))))
- 	}
+	| ID LBRACK lterm_list RBRACK { Predicate_pre (line_pos(), $1, $3) }
+	| fol IMPL fol { Implication_pre (line_pos(), $1, $3) }
+	| fol DISJ fol { Disjunction_pre (line_pos(), $1, $3) }
+	| fol CONJ fol { Conjunction_pre (line_pos(), $1, $3) }
+	| FORALL ID COLON ltype COMMA fol { UniversialQ_pre (line_pos(), $2, $4, $6) }
+	| EXISTS ID COLON ltype COMMA fol { ExistensialQ_pre (line_pos(), $2, $4, $6) }
+	| EXISTS EXCLAM ID COLON ltype COMMA fol { UniqQ_pre (line_pos(), $3, $5, $7) 	}
 	| LPAREN fol RPAREN { $2 }
-	| TRUE { True }
-	| FALSE { False };
+	| TRUE { True_pre (line_pos()) }
+	| FALSE { False_pre (line_pos()) };
 
 lterm:
-	| lterm PLUS lterm { APlus ($1, $3) }
-	| lterm MULT lterm { AMult ($1, $3) }
-	| MINUS lterm { AMinus $2 }
-	| DIV lterm { ADiv $2 }
-	| lterm MINUS lterm { APlus ($1, AMinus $3) }
-	| lterm DIV lterm { AMult ($1, ADiv $3) }
+	| lterm PLUS lterm { APlus_pre (line_pos(), $1, $3) }
+	| lterm MULT lterm { AMult_pre (line_pos(), $1, $3) }
+	| MINUS lterm { AMinus_pre (line_pos(), $2) }
+	| DIV lterm { ADiv_pre (line_pos(), $2) }
+	| lterm MINUS lterm { APlus_pre (line_pos(), $1, AMinus_pre (line_pos(), $3)) }
+	| lterm DIV lterm { AMult_pre (line_pos(), $1, ADiv_pre (line_pos(), $3)) }
 	| LPAREN lterm RPAREN { $2 }
-	| ID { AVariable $1}
-	| PREC LPAREN lterm RPAREN { Prec $3 }
-	| ID LPAREN lterm_list RPAREN { AApplication ($1, $3)  }
-	| UNDERBAR { AVariable "@res" }
-	| NUM RCONS { ARConst $1 }
-	| NUM { AZConst $1 }
-	| AT NUM { AVariable ("@"^(string_of_int $2)) }
+	| ID { AVariable_pre (line_pos(), $1) }
+	| PREC LPAREN lterm RPAREN { Prec_pre (line_pos(), $3) }
+	| ID LPAREN lterm_list RPAREN { AApplication_pre (line_pos(), $1, $3)  }
+	| UNDERBAR { AVariable_pre (line_pos(), "@res") }
+	| NUM RCONS { ARConst_pre (line_pos(), $1) }
+	| NUM { AZConst_pre (line_pos(), $1) }
+	| AT NUM { AVariable_pre (line_pos(), "@"^(string_of_int $2)) }
 	;
 
 lterm_list:

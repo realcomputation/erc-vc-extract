@@ -20,3 +20,4 @@ let rec split_list a =
 	match a with
 	| (c, d) :: l -> let k = split_list l in (c :: fst k, d :: snd k)	
 	| [] -> ([], [])
+let curline : int ref = ref 0
