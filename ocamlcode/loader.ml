@@ -1,19 +1,19 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * loader.ml: the file is a part of erc-vc-extract contains
+ * functions loading the global variables declared in context.ml
+ * From a user provided ERC program, load_program load type--checked
+ * AST into the global variables in context.ml
+*)
 open Ast
 open Context
 open Typing
 open Errors
 open Utilities
 open Logic
-
-
-(* load the programming variables *)
-(* let rec load_pvariables (s : statementtree) : unit =
-	match s with
-	|   Sequence (s1, s2)  -> load_pvariables s1; load_pvariables s2
-
-	|   Newvariable (s, t) -> Hashtbl.add pvariables s true
-
-	| _ -> () *)
 
 let rec load_pvariables_pre (s : statement_pre) : unit =
 	match s with

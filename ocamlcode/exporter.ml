@@ -1,3 +1,11 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * exporter.ml: the file is a part of erc-vc-extract contains 
+ * functions that export the extracted conditions to a Coq source code.
+*)
 open Context
 open Typing
 open Ast
@@ -8,29 +16,20 @@ open Errors
 open Loader
 
 
-
-(**
-let ifun : (string, data_type list) Hashtbl.t = Hashtbl.create 10
-let rfun : (string, data_type list) Hashtbl.t = Hashtbl.create 10
-let rfundom : (string, foltree) Hashtbl.t = Hashtbl.create 10
-let ifundom : (string, foltree) Hashtbl.t = Hashtbl.create 10
-let theories : foltree list ref =  ref []
-let pdefi : (string, (data_type list) * foltree) Hashtbl.t = Hashtbl.create 10
-**)
-
-
+(* Coq's type in Coq Libraries Z from ZAriths and R from Reals *)
 let dump_type (a : data_type) : string = 
 	match a with 
 	| Real -> "R"
 	| Int -> "Z"
 	| _ -> raise (EngineErr "not valid datatype")
 
+(* typed variable list in Coq's function input syntax *)
 let rec print_tv_list (tv : typed_variable list) = 
 	match tv with
 	| (t, v) :: l -> " "^v^" : "^(dump_type t)^(print_tv_list l)
 	| [] -> ""
 
-
+(* Aterm tree into Coq's term. Type tagging in Coq will be done in proposition level *)
 let rec dump_atermtree (at : atermtree) : string = 
 	match at with 
 	|	AZConst z -> (string_of_int z)
@@ -42,7 +41,6 @@ let rec dump_atermtree (at : atermtree) : string =
 	|   AMinus (t) -> "- "^(dump_atermtree t)
 	|   AVariable s -> s
 	|   AApplication (s, l) -> "("^s^" "^(dump_atermtree_list l)^" )"
-
 	|   AProjection (s, i) -> (dump_atermtree s)^"["^(dump_atermtree i)^"]" 
 	|   ASub (s, t, e) -> (dump_atermtree s)^"["^(dump_atermtree t)^"=>"^(dump_atermtree e)^"]"
 	|   AInput -> raise (EngineErr "predicate cannot be parsed")
@@ -52,6 +50,7 @@ and dump_atermtree_list (al : atermtree list) =
 	| v :: [] -> (dump_atermtree v)
 	| v :: l -> (dump_atermtree v)^" "^(dump_atermtree_list l)
 	| _ -> ""
+
 
 let rec dump_foltree (f : foltree) (ctx : (string, data_type) Hashtbl.t)= 
 	match f with
@@ -80,19 +79,21 @@ let rec dump_foltree (f : foltree) (ctx : (string, data_type) Hashtbl.t)=
 
 let rec dump_datatype_list_dom (ds : data_type list) : string = 
 	match ds with
-	| d :: [] -> (match d with
-				| Real -> "R  "
-				| Int -> "Z  "
-				| _ -> raise (EngineErr "type of domain can only be either R or Z")
-				)
-	| d :: s -> (match d with
-				| Real -> "R -> "
-				| Int -> "Z -> "
-				| _ -> raise (EngineErr "type of domain can only be either R or Z")
-				)
+	| d :: [] -> 
+		(match d with
+		| Real -> "R  "
+		| Int -> "Z  "
+		| _ -> raise (EngineErr "type of domain can only be either R or Z"))
+	| d :: s -> 
+		(match d with
+		| Real -> "R -> "
+		| Int -> "Z -> "
+		| _ -> raise (EngineErr "type of domain can only be either R or Z"))
 	| _ -> ""
 
-(**************************************)
+
+
+(**********)
 (* translate prove obligations to coq *)
 let rec dump_sfun_list (fs : (string * (data_type list * data_type)) list) =
 	match fs with
@@ -101,9 +102,10 @@ let rec dump_sfun_list (fs : (string * (data_type list * data_type)) list) =
 
 let rec new_variables_of_types (dl : data_type list) : typed_variable list =
 	match dl with
-	| d :: l -> let fv = !freshvar + 1 in 
-					freshvar := !freshvar +1;
-					(d, "_in"^(string_of_int fv)) :: (new_variables_of_types l)
+	| d :: l -> 
+		let fv = !freshvar + 1 in 
+		freshvar := !freshvar +1;
+		(d, "_in"^(string_of_int fv)) :: (new_variables_of_types l)
 	| [] -> []
 
 
@@ -156,9 +158,10 @@ let dump_theories () : string =
 
 let rec dump_coq_theories_list (l : string list) : string = 
 	match l with
-	| t :: l -> let b = "Axiom axiomCoq"^(string_of_int (!theoremid))^" : \n\t" in
-				(theoremid := !theoremid+1);
-				b^t^".\n\n"^(dump_coq_theories_list l)
+	| t :: l -> 
+		let b = "Axiom axiomCoq"^(string_of_int (!theoremid))^" : \n\t" in
+		(theoremid := !theoremid+1);
+		b^t^".\n\n"^(dump_coq_theories_list l)
 	| [] ->""
 
 let dump_coq_theories () : string = 
@@ -167,9 +170,10 @@ let dump_coq_theories () : string =
 
 let rec dump_theorems (l : foltree list) : string =
 	match l with
-	| f :: lk -> let b = "Theorem theorem"^(string_of_int (!theoremid))^" : \n\t" in 
-				(theoremid := !theoremid+1);
-				b^(dump_foltree f empty_ctx)^".\nProof.\nAdmitted.\n\n"^(dump_theorems lk)
+	| f :: lk -> 
+		let b = "Theorem theorem"^(string_of_int (!theoremid))^" : \n\t" in 
+		(theoremid := !theoremid+1);
+		b^(dump_foltree f empty_ctx)^".\nProof.\nAdmitted.\n\n"^(dump_theorems lk)
 	| [] -> ""
 
 let dump_coq_init () : unit = 
@@ -196,6 +200,11 @@ let dump_init () : string =
 	(fmatter)^
 	"\nRequire Import Reals.\nRequire Import ZArith.\nRequire Import "^(!filename_wo_dir)^"_prec.\n"
 
+
+(**********)
+(* generate a Coq source code with global contexts (including axioms) 
+ * at its header and theorems in f written below
+ *)
 let dump_coq (f : foltree list) : unit =
 	let tv = !parsed_input in
 	let s = !parsed_stmt in

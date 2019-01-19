@@ -1,3 +1,14 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * typing.ml: the file is a part of erc-vc-extract contains
+ * type-checking functions. The functions end with _pre is a function 
+ * that will be called only once to inspect user given program;
+ * the functions raise errors when a given term is ill--typed.
+ * the functions should not be used except for inspecting user code.
+*)
 open Hashtbl
 open Ast
 open Context

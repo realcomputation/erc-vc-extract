@@ -1,3 +1,14 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * context.ml: the file is a part of erc-vc-extract contains
+ * global contexts and variables to be used by the program
+ * sfun/mfun is a context storing user defined function symbols
+ * freshvar is a global variable that is used when other functions will to
+ * introduce a fresh variables.
+*)
 open Hashtbl
 open Ast
 open Utilities

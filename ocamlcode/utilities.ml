@@ -1,3 +1,16 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * utilities.ml: the file is a part of erc-vc-extract contains
+ * basic functions that to be used by the program.
+ * bind_list _ f is a functor action on a function f by the list monad.
+ * it should be declared in OCaml standard library... but i wrote it myself here since
+ * it will take shorter than searching it...
+ * curline is a global variable stores current line of parser; it is not appropriate to be here;
+ * it should be moved to other files in future version of development.
+*)
 exception ListErr of string
 
 let rec bind_list a f =

@@ -1,4 +1,12 @@
-(* Canonical form a atermtree *)
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * canonical.ml: the file is a part of erc-vc-extract contains
+ * functions reducing a logical term into a linear canonical terms;
+ * the transformation is used to reduce a logical term into a simpler form
+*)
 open Ast
 open Logic
 

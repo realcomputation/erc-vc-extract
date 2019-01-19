@@ -1,3 +1,11 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * logic.ml: the file is a part of erc-vc-extract contains
+ * simple functions for the assertion languages such as term substitution
+*)
 open Hashtbl
 open Ast
 open Errors

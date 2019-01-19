@@ -1,3 +1,13 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * ast.ml: the file is a part of erc-vc-extract contains
+ * abstract syntax trees of ERC.
+ * the one ends with _pre is used to represent user given ERC program which is not
+ * type-checked yet. 
+*)
 open Hashtbl
 open Utilities
 (* Data types *)

@@ -1,3 +1,14 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * vccalc.ml: the file is a part of erc-vc-extract contains
+ * verification condition extracting function and predicate semantic translation function.
+ * vc_extract() is the function extracts verification condition 
+ * the function refers to the global contexts in context.ml
+ * hence, the global variables should be loaded first.
+*)
 open Ast
 open Context
 open Typing

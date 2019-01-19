@@ -1,3 +1,12 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * reduction.ml: the file is a part of erc-vc-extract contains
+ * first order logic simplification methods;
+ * fol_reduce : foltree -> foltree is the final function
+*)
 open Ast
 open Canonical
 open Logic

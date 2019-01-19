@@ -1,3 +1,12 @@
+(**********)
+(* erc-vc-extract is a OCaml written program that 
+ * extracts verification conditions of an annotated ERC program
+ * written by Sewon Park @ KAIST (2019).
+ *
+ * initialcoq.ml: the file is a part of erc-vc-extract contains 
+ * text that to be contained in *_prec.v Coq file declaring
+ * definitions and few lemmas about precision embedding
+*)
 let coqprec : string = 
 "
 (*  Sewon Park @ SoC, KAIST 2018 
