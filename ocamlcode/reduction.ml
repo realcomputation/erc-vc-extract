@@ -118,8 +118,8 @@ let atermtree_neq (a1 : atermtree) (a2 : atermtree) =
 	| ARConst z1, ARConst z2 -> (if z1 = z2 then false else true)
 	| _, _ -> false
 
-(**************************)
-(* simplify identical     *)
+(**********)
+(* simplify a = a -reduce-> True and 1=2 -reduce-> False *)
 let rec simplify_i (l : foltree) : foltree =
 	match l with
 	|   Neg (t) -> Neg (simplify_i t)
@@ -149,9 +149,8 @@ let rec simplify_i (l : foltree) : foltree =
 	|   _ -> l
 
 
-
-
-(* reduce existential terms *)
+(**********)
+(* reduce quantifiers *)
 let rec find_ex (l : foltree) (s : string) : atermtree list = 
 	match l with
 	| Conjunction (l1, l2) -> (find_ex l1 s) @ (find_ex l2 s)
@@ -276,18 +275,24 @@ let rec reduce_quantifiers_list (l : foltree list) : foltree list =
 
 
 
-
-
-
-
-
-
-
-
-
-(*************************************)
-(* Prenex form and DNF. *)
-
+(**********)
+(* Prenex form of a first order formulae with Q1 Q2 Q3 ... Qn F where
+ * F is a quantifier free formulae whose variables are bounded by one of Qi.
+ * Prenex transform of a first order formula Q is a Prenex form which is 
+ * equivalent to the original formula. 
+ *
+ * Transforming a first order formula into a Prenex form, we transform the
+ * quantifier free part into DNF form and reduce as much clauses as possible 
+ * by checking conflicts;e.g.,
+ * Q /\ Neg Q /\ ... => False
+ * We further simplifies using simple arithmetic facts; e.g.,
+ * x = 10 /\ x > 10 ... => False
+ *
+ * DNF transformation may increases the number of clauses. 
+ * Hence, our full reduction strategy only "TRY" reduction using
+ * Prenex - DNF; if it only increases the number of clauses, 
+ * it rolls back!
+*)
 type quanti = 
 		Univ of data_type
 	|   Exi of data_type
@@ -368,7 +373,7 @@ let prenex_extract (f : foltree) : prenex_form =
 
 
 
-(*************************************)
+(**********)
 (* building dnf form on a quantifier free f *)
 (* reducing implications *)
 let rec impl_reduction (f : foltree) : foltree= 
@@ -469,7 +474,7 @@ let reduce_to_dnf (f : foltree) =
 	dnf_distribute (neg_reduction_arith (neg_reduction (impl_reduction f)))
 
 
-(*************************************)
+(**********)
 (* make dnf into list of clauses *)
 let rec disjunctive_list (f : foltree) : foltree list = 
 	match f with
@@ -483,16 +488,19 @@ let rec dnf_to_list (f : foltree) : (foltree list) list =
 
 
 
-(*************************************)
+(**********)
 (* reduce dnf clauses based on arithmetic facts *)
 let rec dnf_arith_reduction (f : foltree list) =
 	match f with
 	| q :: l -> 
 		(match q with
-		| Greater(a, b) -> if fol_syn_eq_list l (Identity (a, b)) || fol_syn_eq_list l (Identity(b,a)) || fol_syn_eq_list l (Greater(b,a)) then
-							False :: (dnf_arith_reduction l) else q :: (dnf_arith_reduction l)
-		| Identity(a, b) -> if fol_syn_eq_list l (Greater(a,b)) || fol_syn_eq_list l (Greater (b,a)) 
-							then False :: (dnf_arith_reduction l) else q :: (dnf_arith_reduction l)
+		| Greater(a, b) -> 
+			if fol_syn_eq_list l (Identity (a, b)) || fol_syn_eq_list l (Identity(b,a)) || fol_syn_eq_list l (Greater(b,a)) then
+			False :: (dnf_arith_reduction l) else q :: (dnf_arith_reduction l)
+		
+		| Identity(a, b) -> 
+			if fol_syn_eq_list l (Greater(a,b)) || fol_syn_eq_list l (Greater (b,a)) 
+			then False :: (dnf_arith_reduction l) else q :: (dnf_arith_reduction l)
 
 		| _ -> (q :: (dnf_arith_reduction l)))
 	| _ -> []	
@@ -560,7 +568,7 @@ let simplify_dnf (f : (foltree list) list) : (foltree list) list =
 
 
 
-(*************************************)
+(**********)
 (* restore dnf as a list into one fol term *)
 let rec fol_of_dnf2 (f : (foltree list)) : foltree = 
 	match f with
@@ -592,10 +600,10 @@ let prenex_dnf (f : foltree) =
 	let p = prenex_extract f in
 	{ quantifiers = p.quantifiers ; mainfol = reduce_to_dnf (p.mainfol) }
 
-(*************************************)
-(*	for any v, make v quantifier free form by prenex conversion 
-	take it into dnf form then apply the dnf reductions and
-	take it back to one fol term
+(**********)
+(* for any v, make v quantifier free form by prenex conversion 
+ * take it into dnf form then apply the dnf reductions and
+ * take it back to one fol term
 *)
 let prenex_dnf_reduction (v : foltree) : foltree =
 	let pre = prenex_dnf v in
@@ -607,14 +615,19 @@ let prenex_dnf_reduction (v : foltree) : foltree =
 
 
 
-(* reduction using dnf-prenex at the end *)
+(**********)
+(* simplify quantifiers -> reduce syntactic identical -> reduce truths.
+ * further try reducing using DNF reduction.
+ * if DNF reduction only increases the number of clauses, 
+ * roll back!
+ *)
 let fol_reduce (f : foltree) : foltree = 
 	let simpl = simplify_t (simplify_i (reduce_quantifiers f)) in
 	let pr = prenex_dnf_reduction simpl in
 	if (size simpl) > (size pr) then pr else simpl
 
 
-(*************************************)
+(**********)
 (* printings *)
 let rec print_tagged_var (v : tagged_variable) = 
 	match (fst v) with

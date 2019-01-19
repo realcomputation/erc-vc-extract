@@ -23,27 +23,28 @@ let rec lstr (s : string list) =
 let main () =
 	let fnames = Str.split (Str.regexp "\\.") (Sys.argv.(1)) in 
 	match fnames with
-	| a :: [b] -> if b = "erc"
-					then
-					(
-					coqfilename := a;
-					(match List.rev (Str.split (Str.regexp "/") a) with
-					| g :: l -> filename_wo_dir := g
-					| [] -> print_endline "cannot parse file name...");
-					let file = open_in (Sys.argv.(1)) in
-					let lexbuf = Lexing.from_channel(file) in
-					try Parser.prog Lexer.token lexbuf
-					with
-					| exn -> 
-				        (
+	| a :: [b] -> 
+		if b = "erc" then
+		begin
+			coqfilename := a;
+			(match List.rev (Str.split (Str.regexp "/") a) with
+			| g :: l -> filename_wo_dir := g
+			| [] -> 
+				print_endline "cannot parse file name...");
+				let file = open_in (Sys.argv.(1)) in
+				let lexbuf = Lexing.from_channel(file) in
+				try Parser.prog Lexer.token lexbuf
+				with
+				| exn -> 
+			        begin
 				        let curr = lexbuf.Lexing.lex_curr_p in
 				        let line = curr.Lexing.pos_lnum in
 				        let token = Lexing.lexeme lexbuf in
 				        if token = "" then print_endline (print_error exn)
- 						else print_endline ("Cannot parse "^token^" in line "^(string_of_int line));
-				    	) 
-					)
-				else print_endline "file extension .erc expected"
+							else print_endline ("Cannot parse "^token^" in line "^(string_of_int line));
+			    	end
+		end
+	else print_endline "file extension .erc expected"
 	| _ -> print_endline "file extension .erc expected"
 
 let _ = Printexc.print main ()
